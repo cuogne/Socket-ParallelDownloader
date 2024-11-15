@@ -1,15 +1,15 @@
 # Socket - Parallel Downloader
-> A seminar about Socket of Computer Networking in HCMUS
+> A project about Socket of Computer Networking in HCMUS
 
-```
-Note: This product is currently in the testing phase and is not yet complete. It will be updated in the future.
-```
+> Note: This product is currently in the testing phase and is not yet complete. 
+It will be updated in the future.
 
 Current directory structure 
 ```
 client/
 ├── DownloadTest/  
 ├── client.py
+├── input.txt
 server/
 ├── FileTest/
 │   ├── meo.png
@@ -36,25 +36,39 @@ README.md
 git clone https://github.com/cuogne/Socket-ParallelDownloader.git
 ```
 
-2. Open the folder and navigate to the `server` directory:
+2. If you haven't installed Python yet, please install it using the following command:
+
+On macOS:
+```zsh
+brew install python
+```
+
+On Windows:
+```powershell
+winget install Python.Python.3
+```
+
+3. Open the folder and navigate to the `server` directory:
 
 ```zsh
 cd server
 ```
 
-3. Run the server with the command:
+4. Run the server with the command:
 
 ```zsh
 python3 server.py
 ```
 
-4. Open another terminal and navigate to the `client` directory:
+5. Open another terminal and navigate to the `client` directory:
 
 ```zsh
 cd client
 ```
 
-5. Run the client with the command:
+6. Run the client with the command:
 ```zsh
 python3 client.py
 ```
+
+_Have a nice day !!!_
