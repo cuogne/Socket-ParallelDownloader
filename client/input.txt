@@ -1,0 +1,7 @@
+File này sẽ ghi nhận các tên file sẽ được download
+Hiện tại chưa làm tính năng này nên để tạm đây vì còn nhiều tính năng nhỏ yêu cầu trong đồ án.
+
+// test
+File1.zip
+File2.zip 
+(Ví dụ File2.zip được thêm vào file input.txt sau khoảng 20 giây và lưu file này lại, client sẽ phát hiện so với lần đọc trước đó thì File2.zip là file mới cần được download sau khi hoàn thành download xong File1.zip)
