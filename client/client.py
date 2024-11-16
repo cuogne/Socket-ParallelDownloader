@@ -47,14 +47,19 @@ def download_file(file_name):
         print(f"[CLIENT] Error downloading {file_name}: {e}")
 
 if __name__ == "__main__":
-    file_list = fetch_file_list()
+    file_list = fetch_file_list() # read in file 
 
     if not file_list:
         print("[CLIENT] No files to download.")
     else:
-        print(f"[CLIENT] File list from the server:")
         for file_info in file_list:
             print(f"- {file_info['name']} ({file_info['size']})")
 
+        with open("input.txt", "r") as input_file: # open file input.txt in client
+            # read file and push into list input_files
+            input_files = [line.strip() for line in input_file.readlines()]
+
         for file_info in file_list:
-            download_file(file_info['name'])
+            if file_info['name'] in input_files: # compare with file .json
+                download_file(file_info['name'])
+            
