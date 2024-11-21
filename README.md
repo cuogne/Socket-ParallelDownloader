@@ -1,4 +1,4 @@
-# Socket - Parallel Downloader
+# Socket - Transfer File with Python
 > A project about Socket of Computer Networking in HCMUS
 
 > Note: This product is currently in the testing phase and is not yet complete. 
@@ -8,14 +8,18 @@ Current directory structure
 ```
 client/
 ├── DownloadTest/  
+│   ├── 
+│   ├── 
+│   ├── 
+│   ├── 
 ├── client.py
 ├── input.txt
 server/
 ├── FileTest/
-│   ├── meo.png
-│   ├── example.txt
-│   ├── mmb.txt
-│   ├── hihi.txt
+│   ├── 
+│   ├── 
+│   ├── 
+│   ├── 
 ├── file.json
 ├── server.py
 .gitignore
@@ -40,7 +44,7 @@ git clone https://github.com/cuogne/Socket-ParallelDownloader.git
 
 On macOS:
 ```zsh
-brew install python
+brew install python3
 ```
 
 On Windows:
