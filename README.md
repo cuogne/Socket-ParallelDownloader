@@ -2,12 +2,12 @@
 > A project about Socket of Computer Networking in HCMUS
 
 > Note: This product is currently in the testing phase and is not yet complete. 
-It will be updated in the future.
+- It will be updated in the future (this will be fixed to match the functionality of the project).
 
 Current directory structure 
 ```
 client/
-├── DownloadTest/  
+├── dataClient/  
 │   ├── 
 │   ├── 
 │   ├── 
@@ -15,23 +15,21 @@ client/
 ├── client.py
 ├── input.txt
 server/
-├── FileTest/
+├── dataServer/
 │   ├── 
 │   ├── 
 │   ├── 
 │   ├── 
-├── file.json
+├── text.txt
 ├── server.py
 .gitignore
 README.md
 ```
 
-- The `FileTest` directory contains the files that the client needs to download.
-- The `file.json` file stores information about the files in the `FileTest` directory, including:
-    + File name
-    + File size (KB)
-- It will be updated each time the server runs (this will be fixed in the future to match the functionality of the project).
-- The `DownloadTest` folder is where the downloaded files from the server to the client will be saved.
+- The `dataServer` directory contains the files that the client can download.
+- The `text.txt` file stores information about the files in the `dataServer` directory.
+- The `dataClient` folder is where the downloaded files from the server to the client will be saved.
+- The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
 # Run test
 1. Open the terminal and paste the following command:

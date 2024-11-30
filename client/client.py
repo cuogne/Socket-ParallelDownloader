@@ -1,65 +1,116 @@
 import socket
-import json
+import signal
+import sys
 import os
+import time
 
-# directory to save downloaded files
-DOWNLOAD_DIRECTORY = "DownloadTest"
+IP = '127.0.0.1'
+PORT = 4499
+ADDR = (IP, PORT)
+SIZE = 1024
+FORMAT = "utf-8"
+REQUEST_FILE = 'input.txt'
+CLIENT_DATA_PATH = 'dataClient'
 
-def fetch_file_list():
+# ctrl + c => terminate
+def signal_handler(_, __):
+    print("\n[SHUTTING DOWN] Client is shutting down...")
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
+# get file from server
+def get_file_list(client):
+    client.send("GET FILELIST".encode(FORMAT))
+    response = client.recv(SIZE).decode(FORMAT)
+    print("\n[SERVER FILE LIST]:") # print file on terminal
+    print(response) 
+
+# handle downloadFile
+def download_file(client, file_name):
+    client.send(f"DOWNLOAD {file_name}".encode(FORMAT))
+
+    # receive file size or error message
+    response = client.recv(SIZE).decode(FORMAT)
+    if response.startswith("[ERROR]"):
+        print(response)
+        return
+
     try:
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(("127.0.0.1", 8888))
-        client.send("LIST".encode())
+        file_size = int(response)
+    except ValueError:
+        print("[ERROR] Failed to parse file size.")
+        return
 
-        data = client.recv(8192).decode()  # receive JSON data from server
-        client.close()
+    print(f"[DOWNLOADING] {file_name} ({file_size} bytes)")
 
-        return json.loads(data)  # return the file list as a list
-    except Exception as e:
-        print(f"[CLIENT] Error fetching file list: {e}")
-        return []
+    file_path = os.path.join(CLIENT_DATA_PATH, file_name)
+    os.makedirs(CLIENT_DATA_PATH, exist_ok=True)
 
-def download_file(file_name):
+    with open(file_path, "wb") as file:
+        received = 0
+        while received < file_size:
+            data = client.recv(SIZE)
+            file.write(data)
+            received += len(data)
+            print(f"[PROGRESS] {received}/{file_size} bytes", end="\r")
+
+    print(f"\n[COMPLETED] {file_name} downloaded successfully.")
+
+# read and update input.txt each 5s
+def process_input_file(client, processed_files):
+    if not os.path.exists(REQUEST_FILE):
+        return processed_files
+
+    with open(REQUEST_FILE, "r") as file:
+        file_list = file.read().splitlines()
+
+    # find new file
+    new_files = [file_name for file_name in file_list if file_name not in processed_files]
+
+    if new_files: # if have
+        print("------------------------------------------------------------")
+        print("[UPDATE] Detected changes in input.txt:")
+        print("\n".join(new_files))
+        
+        # down new file
+        for file_name in new_files:
+            try:
+                download_file(client, file_name)
+            except Exception as e:
+                print(f"[ERROR] Failed to download {file_name}: {e}")
+
+        # update 
+        return processed_files + new_files
+
+    return processed_files
+
+def main():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(ADDR)
+
     try:
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(("127.0.0.1", 8888))
-        client.send(f"DOWNLOAD:{file_name}".encode())
+        welcome_msg = client.recv(SIZE).decode(FORMAT)
+        print(f"[SERVER]: {welcome_msg}")
 
-        if not os.path.exists(DOWNLOAD_DIRECTORY):
-            os.makedirs(DOWNLOAD_DIRECTORY) # create dir if doesn't exist
+        # display server file list
+        get_file_list(client)
 
-        output_file = os.path.join(DOWNLOAD_DIRECTORY, file_name)
+        # track already processed files
+        processed_files = []
+        processed_files = process_input_file(client, processed_files)
 
-        # receive data and write to file
-        with open(output_file, "wb") as file:
-            while True:
-                chunk = client.recv(4096)  # receive chunk by chunk
-                if not chunk:
-                    break
-                if chunk.startswith(b"ERROR:"):
-                    print(chunk.decode())  # display error from server
-                    return
-                file.write(chunk)
+        print("[INFO] Monitoring input.txt for changes...")
+        while True:
+            # check for updates in input.txt every 5 seconds
+            time.sleep(5)
 
-        print(f"[CLIENT] File {file_name} has been downloaded successfully.")
-        client.close()
+            # process the input.txt to check for any new files
+            processed_files = process_input_file(client, processed_files)
+            
     except Exception as e:
-        print(f"[CLIENT] Error downloading {file_name}: {e}")
+        print(f"[ERROR]: {e}")
+    finally:
+        client.close()
 
 if __name__ == "__main__":
-    file_list = fetch_file_list() # read in file 
-
-    if not file_list:
-        print("[CLIENT] No files to download.")
-    else:
-        for file_info in file_list:
-            print(f"- {file_info['name']} ({file_info['size']})")
-
-        with open("input.txt", "r") as input_file: # open file input.txt in client
-            # read file and push into list input_files
-            input_files = [line.strip() for line in input_file.readlines()]
-
-        for file_info in file_list:
-            if file_info['name'] in input_files: # compare with file .json
-                download_file(file_info['name'])
-            
+    main()

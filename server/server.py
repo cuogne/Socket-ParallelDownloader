@@ -1,69 +1,104 @@
-import os
-import json
 import socket
+import threading
+import signal
+import sys
+import os
 
-DIRECTORY_PATH = "FileTest" # contain files for client download
-JSON_FILE = "file.json" # file .json contain name and size of file
+IP = '127.0.0.1'
+PORT = 4499
+ADDR = (IP, PORT)
+SIZE = 1024
+FORMAT = "utf-8"
+SERVER_DATA_PATH = 'dataServer'
+TEXT_FILE = 'text.txt'
 
-def generate_file_list():
-    file_list = []
+# ctrl + c => terminate
+def signal_handler(_, __):
+    print("\n[SHUTTING DOWN] Server is shutting down...")
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
+#change size of file B, KB, MB
+def change_size(size):
+    for unit in ["B", "KB", "MB", "GB"]:
+        if size < 1024 or unit == "GB":
+            return f"{size:.0f}{unit}"
+        size /= 1024
+        
+def handle_client(conn, addr):
+    # create new connection
+    print(f'[NEW CONNECTION] {addr} connected.')
+    conn.send("Welcome to the Server.".encode(FORMAT))
+    connected = True
     
-    for file_name in os.listdir(DIRECTORY_PATH):
-        file_path = os.path.join(DIRECTORY_PATH, file_name)
-        if os.path.isfile(file_path):
-            file_size = os.path.getsize(file_path)  # file size
-            file_list.append({"name": file_name, "size": f"{file_size} bytes"})
-            
-    # write in file .json
-    with open(JSON_FILE, "w") as json_file:
-        json.dump(file_list, json_file, indent=4)
+    while connected:
+        try:
+            msg = conn.recv(SIZE).decode(FORMAT)
+            if not msg:
+                break
 
-def handle_client(client_socket):
-    try:
-        request = client_socket.recv(1024).decode()
-        if request == "LIST":
-            
-            # send the list of files from file.json
-            with open(JSON_FILE, "r") as json_file:
-                file_data = json_file.read()
-            client_socket.send(file_data.encode())
-        elif request.startswith("DOWNLOAD:"):
-            
-            # get the file name from the request
-            file_name = request.split(":")[1].strip()
-            file_path = os.path.join(DIRECTORY_PATH, file_name)
-
-            if os.path.exists(file_path):
-                # send file data in chunks
-                with open(file_path, "rb") as file:
-                    while chunk := file.read(4096):
-                        client_socket.send(chunk)
-            else:
-                client_socket.send(b"ERROR: File not found.")
+            if msg == "DISCONNECT":
+                connected = False
+            elif msg == "GET FILELIST":
+                # send the file list from the server, including content from text.txt
+                files = []
+                # read file text.txt
+                try:
+                    with open(TEXT_FILE, "r") as file:
+                        file_content = file.read()
+                        files.append(f"File that Client can Download:\n{file_content}")
+                except FileNotFoundError:
+                    files.append(f"[ERROR] {TEXT_FILE} not found.")
                 
-        client_socket.close()
-    except Exception as e:
-        print(f"[SERVER] Error: {e}")
+                # send file for client
+                file_list = "\n".join(files)
+                conn.send(file_list.encode(FORMAT))
+                
+            elif msg.startswith("DOWNLOAD"):
+                # handle file download request
+                file_name = msg.split(" ", 1)[1]
+                file_path = os.path.join(SERVER_DATA_PATH, file_name)
 
-def start_server():
+                if not os.path.exists(file_path) or not os.path.isfile(file_path):
+                    conn.send(f"[ERROR] File '{file_name}' not found.".encode(FORMAT))
+                else:
+                    file_size = os.path.getsize(file_path)
+                    conn.send(str(file_size).encode(FORMAT))
+
+                    with open(file_path, "rb") as file:
+                        while chunk := file.read(SIZE):
+                            conn.send(chunk)
+            else:
+                conn.send(f"[SERVER] Unknown command: {msg}".encode(FORMAT))
+            
+            print(f"[{addr}] {msg}")
+            
+        except ConnectionResetError:
+            print(f"[DISCONNECTED] {addr} forcibly closed the connection.")
+            break
+        
+    print(f"[DISCONNECTED] {addr} disconnected.")
+    conn.close()
+
+def main():
+    print("[STARTING] Server is starting.")
     
-    generate_file_list()
-
-    # create socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(("0.0.0.0", 8888))
-    server.listen(5)
-    print("[SERVER] Server is running on port 8888...")
-
-    try:
-        while True:
-            client_socket, client_address = server.accept()
-            print(f"[SERVER] Client connected: {client_address}")
-            handle_client(client_socket)
-    except KeyboardInterrupt:
-        print("\n[SERVER] Server is shutting down...")
-    finally:
-        server.close()
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind(ADDR)
+    server.listen()
+    
+    print("[LISTENING] Server is listening.")
+    
+    while True:
+        try:
+            conn, addr = server.accept()
+            thread = threading.Thread(target=handle_client, args=(conn, addr))
+            thread.start()
+        except KeyboardInterrupt:
+            print("\n[SHUTTING DOWN] Server is shutting down...")
+            break
+    server.close()
 
 if __name__ == "__main__":
-    start_server()
+    main()
