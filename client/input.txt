@@ -1,2 +1,2 @@
-meo.png
-example.txt
+info.txt
+abc.txt
