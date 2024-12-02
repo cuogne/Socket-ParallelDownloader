@@ -52,9 +52,10 @@ def download_file(client, file_name):
             data = client.recv(SIZE)
             file.write(data)
             received += len(data)
-            print(f"[PROGRESS] {received}/{file_size} bytes", end="\r")
+            print(f"[PROGRESS] {received}/{file_size} bytes", end="\r") # fix
 
     print(f"\n[COMPLETED] {file_name} downloaded successfully.")
+    print("------------------------------------------------------------")
 
 # read and update input.txt each 5s
 def process_input_file(client, processed_files):
@@ -64,13 +65,21 @@ def process_input_file(client, processed_files):
     with open(REQUEST_FILE, "r") as file:
         file_list = file.read().splitlines()
 
-    # find new file
-    new_files = [file_name for file_name in file_list if file_name not in processed_files]
-
+    # new_files = [file_name for file_name in file_list if file_name not in processed_files]
+    
+    # check if new file in input.txt
+    new_files = []
+    check_updated_file = False
+    for file_name in file_list:
+        if file_name not in processed_files:
+            check_updated_file = True
+            new_files.append(file_name)
+        
     if new_files: # if have
-        print("------------------------------------------------------------")
-        print("[UPDATE] Detected changes in input.txt:")
-        print("\n".join(new_files))
+        if check_updated_file and processed_files:
+            print("------------------------------------------------------------")
+            print("[UPDATE] Updated file in input.txt:")
+            print("\n".join(new_files))
         
         # down new file
         for file_name in new_files:
@@ -98,8 +107,7 @@ def main():
         # track already processed files
         processed_files = []
         processed_files = process_input_file(client, processed_files)
-
-        print("[INFO] Monitoring input.txt for changes...")
+        
         while True:
             # check for updates in input.txt every 5 seconds
             time.sleep(5)
