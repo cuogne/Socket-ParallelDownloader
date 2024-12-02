@@ -19,6 +19,18 @@ def signal_handler(_, __):
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
+def update_file_list():
+    with open(TEXT_FILE, "w") as file:
+        for filename in os.listdir(SERVER_DATA_PATH):
+            file_path = os.path.join(SERVER_DATA_PATH, filename)
+            
+            if filename == '.DS_Store':
+                continue
+            
+            if os.path.isfile(file_path):
+                file_size = os.path.getsize(file_path)
+                file.write(f"{filename} {change_size(file_size)}\n")
+
 #change size of file B, KB, MB
 def change_size(size):
     for unit in ["B", "KB", "MB", "GB"]:
@@ -91,6 +103,8 @@ def main():
     server.listen()
     
     print("[LISTENING] Server is listening.")
+    
+    update_file_list()
     
     while True:
         try:
