@@ -52,7 +52,8 @@ def download_file(client, file_name):
             data = client.recv(SIZE)
             file.write(data)
             received += len(data)
-            print(f"[PROGRESS] {received}/{file_size} bytes", end="\r") # fix
+            progress = received / file_size * 100
+            print(f"[PROGRESS] {progress:.2f}%/100%", end="\r")
 
     print(f"\n[COMPLETED] {file_name} downloaded successfully.")
     print("------------------------------------------------------------")
@@ -75,9 +76,8 @@ def process_input_file(client, processed_files):
             check_updated_file = True
             new_files.append(file_name)
         
-    if new_files: # if have
+    if new_files: # if have new file
         if check_updated_file and processed_files:
-            print("------------------------------------------------------------")
             print("[UPDATE] Updated file in input.txt:")
             print("\n".join(new_files))
         
