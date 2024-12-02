@@ -15,6 +15,7 @@ TEXT_FILE = 'text.txt'
 # ctrl + c => terminate
 def signal_handler(_, __):
     print("\n[SHUTTING DOWN] Server is shutting down...")
+    server.close()
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -42,8 +43,8 @@ def handle_client(conn, addr):
             elif msg == "GET FILELIST":
                 # send the file list from the server, including content from text.txt
                 files = []
-                # read file text.txt
                 try:
+                    # read file text.txt
                     with open(TEXT_FILE, "r") as file:
                         file_content = file.read()
                         files.append(f"File that Client can Download:\n{file_content}")
@@ -68,6 +69,7 @@ def handle_client(conn, addr):
                     with open(file_path, "rb") as file:
                         while chunk := file.read(SIZE):
                             conn.send(chunk)
+                            
             else:
                 conn.send(f"[SERVER] Unknown command: {msg}".encode(FORMAT))
             
@@ -79,10 +81,10 @@ def handle_client(conn, addr):
         
     print(f"[DISCONNECTED] {addr} disconnected.")
     conn.close()
-
-def main():
-    print("[STARTING] Server is starting.")
     
+def main():
+    global server
+    print("[STARTING] Server is starting.")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(ADDR)
@@ -98,6 +100,7 @@ def main():
         except KeyboardInterrupt:
             print("\n[SHUTTING DOWN] Server is shutting down...")
             break
+        
     server.close()
 
 if __name__ == "__main__":
