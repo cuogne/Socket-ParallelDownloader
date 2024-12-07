@@ -31,6 +31,8 @@ README.md
 - The `dataClient` folder is where the downloaded files from the server to the client will be saved.
 - The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
+> [COMPLETED] You can open file `input.txt` and add file name that you want to download from server to client. It will be updated every 5 seconds. But you run server first and then run client.
+
 # Run test
 1. Open the terminal and paste the following command:
 
@@ -82,5 +84,7 @@ cd client
 ```zsh
 python3 client.py
 ```
+
+7. Open the `input.txt` file in `client` folder and add the file name you want to download from the server to the client. You will be able to see the file name you just added in `input.txt` after 5 seconds and then the client will download file.
 
 _Have a nice day !!!_
