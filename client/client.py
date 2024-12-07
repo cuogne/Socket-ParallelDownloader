@@ -21,7 +21,10 @@ signal.signal(signal.SIGINT, signal_handler)
 # get file from server
 def get_file_list(client):
     client.send("GET FILELIST".encode(FORMAT))
-    response = client.recv(SIZE).decode(FORMAT)
+    response = b""
+    while b"\n" not in response:
+        response += client.recv(SIZE)
+    response = response.decode(FORMAT).strip()
     print("\n[SERVER FILE LIST]:") # print file on terminal
     print(response) 
 
@@ -43,20 +46,45 @@ def download_file(client, file_name):
 
     print(f"[DOWNLOADING] {file_name} ({file_size} bytes)")
 
-    file_path = os.path.join(CLIENT_DATA_PATH, file_name)
+    # file_path = os.path.join(CLIENT_DATA_PATH, file_name)
     os.makedirs(CLIENT_DATA_PATH, exist_ok=True)
-
-    with open(file_path, "wb") as file:
-        received = 0
-        while received < file_size:
-            data = client.recv(SIZE)
-            file.write(data)
-            received += len(data)
-            progress = received / file_size * 100
-            print(f"[PROGRESS] {progress:.2f}%/100%", end="\r")
-
-    print(f"\n[COMPLETED] {file_name} downloaded successfully.")
-    print("------------------------------------------------------------")
+    
+    part_size = file_size // 4
+    last_part_size = file_size - (part_size * 3)
+    
+    for i in range(4):
+        current_part_size = part_size if i < 3 else last_part_size
+            
+        with open(f"./{CLIENT_DATA_PATH}/{file_name}.part{i+1}", "wb") as part_file:
+            chunk = 0
+            while chunk < current_part_size:
+                # nhan du lieu toi thieu giua 1024 va so byte con lai
+                data = client.recv(min(1024, current_part_size - chunk))
+                
+                if not data:
+                    print(f"Connection lost while downloading part {i+1}")
+                    break
+                
+                part_file.write(data) # ghi du lieu vao file
+                chunk += len(data) # tinh so byte da nhan
+                progress = min(chunk / current_part_size * 100, 100) # tinh phan tram de hien thi tien trinh
+                print(f"Part {i+1} downloaded {progress:.2f}%/100%", end="\r")
+                time.sleep(0.1) # delay 0.1s de tai cham
+                
+            print()
+    
+    with open(f"./{CLIENT_DATA_PATH}/{file_name}", "wb") as merged_file:
+        for i in range(4):
+            part_path = f"./{CLIENT_DATA_PATH}/{file_name}.part{i + 1}"
+            with open(part_path, "rb") as part_file:
+                merged_file.write(part_file.read())
+            os.remove(part_path) # xoa cac part tam sau khi tai xong
+            
+    merged_file_size = os.path.getsize(f"./{CLIENT_DATA_PATH}/{file_name}")
+    if merged_file_size == file_size: # check xem file merge lai co bang file goc kh
+        print(f"[COMPLETED] {file_name} downloaded successfully.")
+    else:
+        print("[ERROR] File size mismatch after merging.")
 
 # read and update input.txt each 5s
 def process_input_file(client, processed_files):

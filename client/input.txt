@@ -1,2 +1,4 @@
 info.txt
 abc.txt
+avt.jpeg
+diem.txt
