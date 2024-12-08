@@ -1,70 +1,87 @@
 import os
 import socket
 import time
+import threading
 
 host = input("Host Name: ")
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# tao ket noi voi socket
+# tao ket noi voi server
 try:
     sock.connect((host, 9876))
     print("Connected Successfully")
 except:
     print("Unable to connect")
     exit(0)
-    
-infofile = sock.recv(1024).decode().strip()
-print(f"Received infofile: {infofile}") # in ra test thu
 
-# nhan file_name va file_size
+infofile = sock.recv(4096).decode().strip()
+print(f"Received infofile: {infofile}")  # in thong tin file
+
+# tach du lieu
 file_name, file_size = infofile.split("|")
 file_size = int(file_size)
 
-# tinh toan de chia 4 phan
+# chia file lam 4
 part_size = file_size // 4
-last_part_size = file_size - (part_size * 3)  # xu li cai thang cuoi cung ra rieng
+last_part_size = file_size - (part_size * 3)
 
-# bat dau tinh gio down thu
-start_time = time.time()
+# print(part_size, last_part_size)
 
-# tai 4 phan cua file
-for i in range(4):
-    if i < 3:
-        current_part_size = part_size
-    else:
-        current_part_size = last_part_size
+# luu 4 process cua tung part
+progress = [""] * 4
 
-    ''' phai xu li them da luong de 4 cai part down cung luc'''
-    
-    with open(f"./download/{file_name}.part{i+1}", "wb") as part_file:
+def download_part(i, start, end):
+    with open(f"./data/{file_name}.part{i+1}", "wb") as part_file:
         chunk = 0
-        while chunk < current_part_size:
-            data = sock.recv(min(1024, current_part_size - chunk))  # nhan du lieu toi thieu giua 1024 va so byte con lai
+        sock.send(f"{start}|{end}".encode())
+        while chunk < (end - start):
+            # nhan du lieu tu server toi da 4096 byte hoac so byte con lai
+            # toi nghi van de mat file la do nhan du lieu (SIZE)
+            data = sock.recv(min(4096, (end - start) - chunk))  
             if not data:
                 print(f"Connection lost while downloading part {i+1}")
                 break
             part_file.write(data)  # ghi du lieu vao file
-            chunk += len(data)  # tinh toan so byte da nhan
-            process = min(chunk / current_part_size * 100, 100)  # tinh toan phan tram de hien thi tien trinh (toi da la 100)
-            print(f"Part {i+1} downloaded {process:.2f}%/100%", end="\r")  # hien thi tien trinh
-            time.sleep(0.1)  # delay 0.1s de hien thi tien trinh (tai file be qua, co tram KB)
+            chunk += len(data)  # update so byte da nhan
+            process = min(chunk / (end - start) * 100, 100)  # tinh % tai xuong
+            
+            # cap nhat tien trinh tai xuong
+            progress[i] = f"Part {i+1} - Process: {process:.2f}%/100%"
+
+            os.system('clear')
+            for p in progress:
+                print(p) # in ra tien trinh cua cac part
+
+            time.sleep(0.01)  # lam cham de xem tien trinh tai xuong
         print()
 
+# tao thread
+threads = []
+for i in range(4):
+    start = i * part_size
+    end = (i + 1) * part_size if i != 3 else file_size 
+    # print(f"Downloading Part {i+1} from byte {start} to byte {end}")
+    thread = threading.Thread(target=download_part, args=(i, start, end))
+    threads.append(thread)
+    thread.start()  # bat dau tai xuong
+
+# cho tat ca cac thread ket thuc
+for thread in threads:
+    thread.join()
+
 # ghep cac part lai
-with open(f"./download/{file_name}", "wb") as merged_file:
+with open(f"./data/{file_name}", "wb") as merged_file:
     for i in range(4):
-        part_path = f"./download/{file_name}.part{i+1}"
+        part_path = f"./data/{file_name}.part{i+1}"
         with open(part_path, "rb") as part_file:
             merged_file.write(part_file.read())
-        os.remove(part_path)  # xoa cac part tam sau khi tai xong
-        
-end_time = time.time() # end time
+        os.remove(part_path) # xoa part temp sau khi ghep
 
-# kiem tra file da duoc tai du byte so voi file goc chua
-merged_file_size = os.path.getsize(f"./download/{file_name}")
+# check kich thuoc file
+merged_file_size = os.path.getsize(f"./data/{file_name}")
 if merged_file_size == file_size:
-    print(f"Down file thanh cong, tong thoi gian thuc hien: {end_time - start_time:.4f} s")
+    print(f"File downloaded successfully!")
 else:
-    print("That bai cmnr, mang may tinh qua kinh khung.")
+    print("Download failed, file size mismatch.")
 
 sock.close()
