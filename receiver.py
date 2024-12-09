@@ -14,8 +14,7 @@ def create_connection(host, port):
     sock.connect((host, port))
     return sock
 
-def update_progress(part_num, progress_percent):
-    """Update progress for a specific part"""
+def display_progress(part_num, progress_percent):
     with lock:
         # Calculate lines to move down (account for header line)
         lines_down = part_num
@@ -54,7 +53,7 @@ def download_part(host, port, part_num, start, end, file_name):
                 received += len(data)
                 
                 progress_percent = min(received / part_size * 100, 100)
-                update_progress(part_num, progress_percent)
+                display_progress(part_num, progress_percent)
                 
         return True
         
