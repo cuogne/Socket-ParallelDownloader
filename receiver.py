@@ -2,6 +2,7 @@ import os
 import socket
 import threading
 import time
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 lock = threading.Lock()
@@ -13,20 +14,44 @@ def create_connection(host, port):
     sock.connect((host, port))
     return sock
 
+def init_progress_display(file_name):
+    """Initialize the progress display"""
+    print(f"Downloading {file_name}...")
+    # Print initial progress lines
+    for i in range(4):
+        sys.stdout.write(f"Part {i+1} - Progress: 0.00%/100%\n")
+    # Move cursor up to first progress line
+    sys.stdout.write('\033[4A')
+    sys.stdout.flush()
+
+def update_progress(part_num, progress_percent):
+    """Update progress for a specific part"""
+    with lock:
+        # Calculate lines to move down (account for header line)
+        lines_down = part_num
+        # Move cursor to correct line
+        sys.stdout.write(f'\033[{lines_down}B')
+        # Clear entire line
+        sys.stdout.write('\033[2K')
+        # Move to start of line and write progress
+        sys.stdout.write(f"\rPart {part_num} - Progress: {progress_percent:.2f}%/100%")
+        # Move cursor back to original position
+        sys.stdout.write(f'\033[{lines_down}A')
+        sys.stdout.flush()
+        time.sleep(0.01)
+
 def download_part(host, port, part_num, start, end, file_name):
     sock = None
     try:
         sock = create_connection(host, port)
         sock.recv(1024)
         
-       # goi format request cho server
-        request = f"{start}-{end}".encode() # 12893-25786
-        # print(f"Requesting part {part_num} with range: {start}-{end}")
-        sock.send(request) # gui cho server de biet phan can down
+        request = f"{start}-{end}".encode()
+        sock.send(request)
         
         with open(f"./data/{file_name}.part{part_num}", "wb") as f:
-            received = 0 # luu so byte da nhan
-            part_size = end - start # kich thuoc part can down
+            received = 0
+            part_size = end - start
             
             while received < part_size:
                 chunk_size = min(4096, part_size - received)
@@ -35,17 +60,12 @@ def download_part(host, port, part_num, start, end, file_name):
                 if not data:
                     raise ConnectionError(f"Connection lost at {received} bytes")
                     
-                f.write(data) # ghi du lieu vao file
-                received += len(data) # tang so byte da nhan
+                f.write(data)
+                received += len(data)
                 
-                # tinh toan tien do
                 progress_percent = min(received / part_size * 100, 100)
-                with lock:
-                    progress[part_num-1] = f"Part {part_num} - Progress: {progress_percent:.2f}%/100%"
-                    os.system('clear')
-                    for p in progress:
-                        print(p)
-                    time.sleep(0.01)  # delay         
+                update_progress(part_num, progress_percent)
+                
         return True
         
     except Exception as e:
@@ -56,16 +76,19 @@ def download_part(host, port, part_num, start, end, file_name):
         if sock:
             sock.close()
 
+# Rest of the code remains the same, just add init_progress_display call
 def download_file(host, port):
     sock = create_connection(host, port)
-    infofile = sock.recv(4096).decode().strip() # nhan infofile gom file_name|file_size
+    infofile = sock.recv(4096).decode().strip()
     sock.close()
     
-    # print(f"Received file info: {infofile}")
-    file_name, file_size = infofile.split("|") #tach
+    file_name, file_size = infofile.split("|")
     file_size = int(file_size)
     
-    os.makedirs("./data", exist_ok=True) # tao thu muc data
+    os.makedirs("./data", exist_ok=True)
+    
+    # Initialize progress display
+    init_progress_display(file_name)
     
     part_size = file_size // 4
     futures = []
@@ -74,21 +97,22 @@ def download_file(host, port):
         for i in range(4):
             start = i * part_size
             end = start + part_size if i < 3 else file_size
-            
-            future = executor.submit(download_part,host, port, i+1, start, end, file_name)
+            future = executor.submit(download_part, host, port, i+1, start, end, file_name)
             futures.append(future)
             
-       # cho tat ca download xong
         failed_parts = []
         for i, future in enumerate(as_completed(futures)):
             if not future.result():
                 failed_parts.append(i+1)
                 
+    # Move cursor down past progress display before showing completion messages
+    sys.stdout.write('\033[4B')
+    sys.stdout.flush()
+    
     if failed_parts:
         print(f"\nFailed to download parts: {failed_parts}")
         return
         
-    # gop file
     print("\nMerging file parts...")
     try:
         with open(f"./data/{file_name}", "wb") as merged_file:
