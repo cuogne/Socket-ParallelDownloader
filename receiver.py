@@ -1,87 +1,121 @@
 import os
 import socket
-import time
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-host = input("Host Name: ")
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# tao ket noi voi server
-try:
-    sock.connect((host, 9876))
-    print("Connected Successfully")
-except:
-    print("Unable to connect")
-    exit(0)
-
-infofile = sock.recv(4096).decode().strip()
-print(f"Received infofile: {infofile}")  # in thong tin file
-
-# tach du lieu
-file_name, file_size = infofile.split("|")
-file_size = int(file_size)
-
-# chia file lam 4
-part_size = file_size // 4
-last_part_size = file_size - (part_size * 3)
-
-# print(part_size, last_part_size)
-
-# luu 4 process cua tung part
+lock = threading.Lock()
 progress = [""] * 4
 
-def download_part(i, start, end):
-    with open(f"./data/{file_name}.part{i+1}", "wb") as part_file:
-        chunk = 0
-        sock.send(f"{start}|{end}".encode())
-        while chunk < (end - start):
-            # nhan du lieu tu server toi da 4096 byte hoac so byte con lai
-            # toi nghi van de mat file la do nhan du lieu (SIZE)
-            data = sock.recv(min(4096, (end - start) - chunk))  
-            if not data:
-                print(f"Connection lost while downloading part {i+1}")
-                break
-            part_file.write(data)  # ghi du lieu vao file
-            chunk += len(data)  # update so byte da nhan
-            process = min(chunk / (end - start) * 100, 100)  # tinh % tai xuong
+def create_connection(host, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(10)
+    sock.connect((host, port))
+    return sock
+
+def download_part(host, port, part_num, start, end, file_name):
+    sock = None
+    try:
+        sock = create_connection(host, port)
+        sock.recv(1024)
+        
+       # goi format request cho server
+        request = f"{start}-{end}".encode() # 12893-25786
+        # print(f"Requesting part {part_num} with range: {start}-{end}")
+        sock.send(request) # gui cho server de biet phan can down
+        
+        with open(f"./data/{file_name}.part{part_num}", "wb") as f:
+            received = 0 # luu so byte da nhan
+            part_size = end - start # kich thuoc part can down
             
-            # cap nhat tien trinh tai xuong
-            progress[i] = f"Part {i+1} - Process: {process:.2f}%/100%"
+            while received < part_size:
+                chunk_size = min(4096, part_size - received)
+                data = sock.recv(chunk_size)
+                
+                if not data:
+                    raise ConnectionError(f"Connection lost at {received} bytes")
+                    
+                f.write(data) # ghi du lieu vao file
+                received += len(data) # tang so byte da nhan
+                
+                # tinh toan tien do
+                progress_percent = min(received / part_size * 100, 100)
+                with lock:
+                    progress[part_num-1] = f"Part {part_num} - Progress: {progress_percent:.2f}%/100%"
+                    os.system('clear')
+                    for p in progress:
+                        print(p)
+                    time.sleep(0.01)  # delay         
+        return True
+        
+    except Exception as e:
+        print(f"\nError downloading part {part_num}: {e}")
+        return False
+        
+    finally:
+        if sock:
+            sock.close()
 
-            os.system('clear')
-            for p in progress:
-                print(p) # in ra tien trinh cua cac part
+def download_file(host, port):
+    sock = create_connection(host, port)
+    infofile = sock.recv(4096).decode().strip() # nhan infofile gom file_name|file_size
+    sock.close()
+    
+    # print(f"Received file info: {infofile}")
+    file_name, file_size = infofile.split("|") #tach
+    file_size = int(file_size)
+    
+    os.makedirs("./data", exist_ok=True) # tao thu muc data
+    
+    part_size = file_size // 4
+    futures = []
+    
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for i in range(4):
+            start = i * part_size
+            end = start + part_size if i < 3 else file_size
+            
+            future = executor.submit(download_part,host, port, i+1, start, end, file_name)
+            futures.append(future)
+            
+       # cho tat ca download xong
+        failed_parts = []
+        for i, future in enumerate(as_completed(futures)):
+            if not future.result():
+                failed_parts.append(i+1)
+                
+    if failed_parts:
+        print(f"\nFailed to download parts: {failed_parts}")
+        return
+        
+    # gop file
+    print("\nMerging file parts...")
+    try:
+        with open(f"./data/{file_name}", "wb") as merged_file:
+            total_size = 0
+            for i in range(4):
+                part_path = f"./data/{file_name}.part{i+1}"
+                with open(part_path, "rb") as part_file:
+                    while True:
+                        chunk = part_file.read(8192)
+                        if not chunk:
+                            break
+                        merged_file.write(chunk)
+                        total_size += len(chunk)
+                os.remove(part_path) # xoa file part sau khi gop
+                
+        if total_size == file_size: # check lai kich thuoc
+            print(f"\nDownload completed successfully!")
+        else:
+            print(f"\nSize mismatch! Expected: {file_size}, Got: {total_size}")
+            
+    except Exception as e:
+        print(f"\nError merging files: {e}")
 
-            time.sleep(0.01)  # lam cham de xem tien trinh tai xuong
-        print()
+def main():
+    host = input("Host Name: ")
+    port = 9876
+    download_file(host, port)
 
-# tao thread
-threads = []
-for i in range(4):
-    start = i * part_size
-    end = (i + 1) * part_size if i != 3 else file_size 
-    # print(f"Downloading Part {i+1} from byte {start} to byte {end}")
-    thread = threading.Thread(target=download_part, args=(i, start, end))
-    threads.append(thread)
-    thread.start()  # bat dau tai xuong
-
-# cho tat ca cac thread ket thuc
-for thread in threads:
-    thread.join()
-
-# ghep cac part lai
-with open(f"./data/{file_name}", "wb") as merged_file:
-    for i in range(4):
-        part_path = f"./data/{file_name}.part{i+1}"
-        with open(part_path, "rb") as part_file:
-            merged_file.write(part_file.read())
-        os.remove(part_path) # xoa part temp sau khi ghep
-
-# check kich thuoc file
-merged_file_size = os.path.getsize(f"./data/{file_name}")
-if merged_file_size == file_size:
-    print(f"File downloaded successfully!")
-else:
-    print("Download failed, file size mismatch.")
-
-sock.close()
+if __name__ == "__main__":
+    main()
