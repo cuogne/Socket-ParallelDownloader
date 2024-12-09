@@ -14,16 +14,6 @@ def create_connection(host, port):
     sock.connect((host, port))
     return sock
 
-def init_progress_display(file_name):
-    """Initialize the progress display"""
-    print(f"Downloading {file_name}...")
-    # Print initial progress lines
-    for i in range(4):
-        sys.stdout.write(f"Part {i+1} - Progress: 0.00%/100%\n")
-    # Move cursor up to first progress line
-    sys.stdout.write('\033[4A')
-    sys.stdout.flush()
-
 def update_progress(part_num, progress_percent):
     """Update progress for a specific part"""
     with lock:
@@ -86,9 +76,6 @@ def download_file(host, port):
     file_size = int(file_size)
     
     os.makedirs("./data", exist_ok=True)
-    
-    # Initialize progress display
-    init_progress_display(file_name)
     
     part_size = file_size // 4
     futures = []
