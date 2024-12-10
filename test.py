@@ -47,9 +47,14 @@ def cursor_demo():
 # \r        - Về đầu dòng
 # \033[s    - Lưu vị trí con trỏ
 # \033[u    - Khôi phục vị trí con trỏ đã lưu
+# flush     - Đẩy dữ liệu
 
 # cursor_demo()
 
-for i in range(6):
-    sys.stdout.write(f'\033[{i}C hello')
-    
+for i in range(4):
+    sys.stdout.write(f'\033[B hello{i}')
+    sys.stdout.flush()
+    time.sleep(1)
+    sys.stdout.write('\033[2K\r')
+    sys.stdout.flush()
+print("\nxin chao")

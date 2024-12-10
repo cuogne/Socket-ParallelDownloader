@@ -2,16 +2,19 @@ import os
 import socket
 import threading
 
+SERVER_DATA_PATH = 'resources'
+TEXT_FILE = 'text.txt'
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((socket.gethostname(), 9876))
 sock.listen(5)
 file_lock = threading.Lock()
 print(f"Server started at {sock.getsockname()}")
 
-# Hàm đọc danh sách file từ text.txt
+# doc danh sach file trong thu muc resources va ghi vao file text.txt
 def load_file_list():
-    resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
-    text_file = os.path.join(os.path.dirname(__file__), 'text.txt')
+    resources_dir = os.path.join(os.path.dirname(__file__), SERVER_DATA_PATH)
+    text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
     
     with open(text_file, 'w') as f:
         for file_name in os.listdir(resources_dir):
@@ -22,19 +25,23 @@ def load_file_list():
 
 def handle_client(client_sock, addr):
     try:
-        # Gửi danh sách file cho client
-        text_file = os.path.join(os.path.dirname(__file__), 'text.txt')
+        # gui danh sach file cho client
+        text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
         with open(text_file, 'r') as f:
             file_list = f.read()
         client_sock.send(file_list.encode())
 
         while True:
-            # Nhận yêu cầu download file
-            request = client_sock.recv(1024).decode().strip()
+            # nhan yeu cau file download tu client
+            try:
+                request = client_sock.recv(1024).decode().strip()
+            except ConnectionResetError:
+                print(f"Connection reset by peer {addr}")
+                break
             if not request:
                 break
             
-            # Phân tích yêu cầu {file_name}|{start}-{end}
+            # xu li du lieu {file_name}|{start}-{end}
             parts = request.split('|')
             if len(parts) != 2:
                 client_sock.send("Invalid request format.".encode())
@@ -43,7 +50,7 @@ def handle_client(client_sock, addr):
             file_name, range_str = parts
             start, end = map(int, range_str.split('-'))
 
-            resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
+            resources_dir = os.path.join(os.path.dirname(__file__), SERVER_DATA_PATH)
             file_path = os.path.join(resources_dir, file_name)
 
             if not os.path.isfile(file_path):

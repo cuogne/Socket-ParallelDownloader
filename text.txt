@@ -1,6 +1,5 @@
-genshin.png|5980541
 arya.gif|3707944
 jinx.png|2445272
-chuphinhem.gif|3041271
+background.jpg|4592619
 alime.jpeg|23765
 avt.jpeg|51573
