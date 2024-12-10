@@ -5,67 +5,68 @@ import threading
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((socket.gethostname(), 9876))
 sock.listen(5)
-file_name = None
-file_size = None
 file_lock = threading.Lock()
 print(f"Server started at {sock.getsockname()}")
 
+# Hàm đọc danh sách file từ text.txt
+def load_file_list():
+    resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
+    text_file = os.path.join(os.path.dirname(__file__), 'text.txt')
+    
+    with open(text_file, 'w') as f:
+        for file_name in os.listdir(resources_dir):
+            file_path = os.path.join(resources_dir, file_name)
+            if os.path.isfile(file_path):
+                file_size = os.path.getsize(file_path)
+                f.write(f"{file_name}|{file_size}\n")
+
 def handle_client(client_sock, addr):
-    global file_name, file_size
     try:
-        # initial connection - send file info
-        with file_lock:
-            if file_name is None:
-                file_name = input("File Name: ")
-                file_size = os.path.getsize(file_name)  # get file size
-            info = f"{file_name}|{file_size}"  # goi du lieu lai
-            client_sock.send(info.encode())  # gui cho client
-        
-        # xu li de down tung phan
+        # Gửi danh sách file cho client
+        text_file = os.path.join(os.path.dirname(__file__), 'text.txt')
+        with open(text_file, 'r') as f:
+            file_list = f.read()
+        client_sock.send(file_list.encode())
+
         while True:
+            # Nhận yêu cầu download file
             request = client_sock.recv(1024).decode().strip()
-            # print(request) 12893-25786, 25786-38679,...
             if not request:
                 break
-
-            parts = request.split('-') # tach du lieu
-
+            
+            # Phân tích yêu cầu {file_name}|{start}-{end}
+            parts = request.split('|')
             if len(parts) != 2:
-                # client gui sai format {start}-{end}
-                error_msg = "Invalid request format. Please send in the format start-end."
-                client_sock.send(error_msg.encode()) # gui thong bao loi qua cho client
-                continue # skip
+                client_sock.send("Invalid request format.".encode())
+                continue
 
-            start_str, end_str = parts
-            try:
-                start, end = int(start_str), int(end_str)
-                # start = 12893, end = 25786
-            except ValueError:
-                # sai khoang gia tri
-                error_msg = "Invalid range values. Please send valid integers for start and end."
-                client_sock.send(error_msg.encode())
-                continue  # skip
+            file_name, range_str = parts
+            start, end = map(int, range_str.split('-'))
 
-            # process file download for the valid range
+            resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
+            file_path = os.path.join(resources_dir, file_name)
+
+            if not os.path.isfile(file_path):
+                client_sock.send(f"File {file_name} not found.".encode())
+                continue
+
             with file_lock:
-                with open(file_name, 'rb') as f:
-                    f.seek(start) # mo file nhi phan tai vi tri start
-                    remaining = end - start # phan con lai
+                with open(file_path, 'rb') as f:
+                    f.seek(start)
+                    remaining = end - start
                     while remaining > 0:
-                        chunk_size = min(4096, remaining) # chunk nhan kich thuoc 4096 hoac phan con lai
-                        data = f.read(chunk_size) # doc chunk_size byte
-                        if not data:
+                        chunk = f.read(min(4096, remaining))
+                        if not chunk:
                             break
-                        client_sock.sendall(data)
-                        remaining -= len(data)
-            break
-
+                        client_sock.sendall(chunk)
+                        remaining -= len(chunk)
     except Exception as e:
         print(f"Error handling client {addr}: {e}")
     finally:
         client_sock.close()
 
 def run():
+    load_file_list()
     try:
         while True:
             client_sock, addr = sock.accept()
