@@ -12,6 +12,15 @@ server.listen(5)
 file_lock = threading.Lock()
 print(f"Server started at {server.getsockname()}")
 
+def change_size(size):
+    units = ["B", "KB", "MB", "GB", "TB"]
+    unit_index = 0
+    size = float(size)
+    while size >= 1024 and unit_index < len(units) - 1:
+        size /= 1024
+        unit_index += 1
+    return f"{size:.3f}{units[unit_index]}"
+
 # doc danh sach file trong thu muc resources va ghi vao file text.txt
 # ham nay chi ghi tu dong cho file text.txt de kh phai nhap thu cong (co the comment lai)
 def write_text():
@@ -22,59 +31,65 @@ def write_text():
         for file_name in os.listdir(resources_dir):
             file_path = os.path.join(resources_dir, file_name)
             if os.path.isfile(file_path):
-                file_size = os.path.getsize(file_path)
-                f.write(f"{file_name}|{file_size}\n")
+                file_size = change_size(os.path.getsize(file_path))
+                f.write(f"{file_name} {file_size}\n")
 
 def handle_client(client_sock, addr):
     try:
-        # doc danh sach file cho phep tai
         text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
+        resources_dir = os.path.join(os.path.dirname(__file__), SERVER_DATA_PATH)
+        
+        # gui danh sach file co the down cho client
         with open(text_file, 'r') as f:
             file_list = f.read()
-
-        # gui danh sach file cho client
         client_sock.send(file_list.encode())
 
         while True:
-            # nhan yeu cau file download tu client
-            # request = f"{file_name}|{start}-{end}".encode() (ben client)
-            try:
-                request = client_sock.recv(BUFFER_SIZE).decode().strip()
-            except ConnectionResetError:
-                print(f"Connection reset by peer {addr}")
-                break
+            # nhan request tu client
+            request = client_sock.recv(BUFFER_SIZE).decode().strip()
             if not request:
                 break
-            
-            # xu li du lieu {file_name}|{start}-{end}
-            parts = request.split('|') # tach file_name va range
-            
+
+            # Handle file size request (when no '|' in request)
+            if '|' not in request:
+                file_path = os.path.join(resources_dir, request)
+                if os.path.isfile(file_path):
+                    file_size = os.path.getsize(file_path)
+                    client_sock.send(str(file_size).encode())
+                else:
+                    client_sock.send(f"File {request} not found.".encode())
+                continue
+
+            # Handle download request (format: filename|start-end)
+            parts = request.split('|')
             if len(parts) != 2:
-                # sai format request
                 client_sock.send("Invalid request format.".encode())
                 continue
 
-            file_name, range_str = parts                # luu file_name vao, con range_str la {start}-{end}
-            start, end = map(int, range_str.split('-')) # tach start va end
-
-            resources_dir = os.path.join(os.path.dirname(__file__), SERVER_DATA_PATH)
+            file_name, range_str = parts
+            start, end = map(int, range_str.split('-'))
             file_path = os.path.join(resources_dir, file_name)
 
             if not os.path.isfile(file_path):
                 client_sock.send(f"File {file_name} not found.".encode())
                 continue
 
+            #Send file chunk
             with file_lock:
                 with open(file_path, 'rb') as f:
-                    f.seek(start)               # di chuyen con tro den vi tri bat dau
-                    remaining = end - start     # tinh so byte con lai can gui
+                    f.seek(start)
+                    remaining = end - start
+                    
                     while remaining > 0:
-                        # doc va gui du lieu cho client
-                        chunk = f.read(min(BUFFER_SIZE, remaining))
+                        chunk_size = min(BUFFER_SIZE, remaining)
+                        chunk = f.read(chunk_size)
                         if not chunk:
                             break
-                        client_sock.sendall(chunk) # sendall de dam bao gui het du lieu
-                        remaining -= len(chunk)   # cap nhat so byte con lai can gui
+                        client_sock.sendall(chunk)
+                        remaining -= len(chunk)
+
+    except ConnectionResetError:
+        print(f"Connection reset by peer {addr}")
     except Exception as e:
         print(f"Error handling client {addr}: {e}")
     finally:
