@@ -7,7 +7,7 @@
 Current directory structure 
 ```
 client/
-├── dataClient/  
+├── data/  
 │   ├── 
 │   ├── 
 │   ├── 
@@ -15,7 +15,7 @@ client/
 ├── client.py
 ├── input.txt
 server/
-├── dataServer/
+├── resources/
 │   ├── 
 │   ├── 
 │   ├── 
@@ -26,9 +26,9 @@ server/
 README.md
 ```
 
-- The `dataServer` directory contains the files that the client can download.
-- The `text.txt` file stores information about the files in the `dataServer` directory.
-- The `dataClient` folder is where the downloaded files from the server to the client will be saved.
+- The `resources` directory contains the files (Storage)
+- The `text.txt` file stores the information of the files that the client needs to download to the server.
+- The `data` folder is where the downloaded files from the server to the client will be saved.
 - The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
 > [COMPLETED] You can open file `input.txt` and add file name that you want to download from server to client. It will be updated every 5 seconds. But you run server first and then run client.
