@@ -6,23 +6,25 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-REQUEST_DOWNLOAD_FILE = "input.txt"
-DOWNLOAD_FOLDER = "data"
+REQUEST_DOWNLOAD_FILE = "input.txt" # file chua danh sach file can download
+DOWNLOAD_FOLDER = "data"            # thu muc chua file download
+BUFFER_SIZE = 4096                  # kich thuoc buffer nhan du lieu
+PORT = 9876                         # port ket noi toi server
+
+lock = threading.Lock()             # khoa de tranh xung dot
+last_used_line_in_terminal = 0      # dong cuoi cung su dung tren terminal
 
 # debug check log, you can comment this line to disable log
 logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-lock = threading.Lock()
-last_used_line = 0
-
 # tao ket noi toi server
-def create_connection(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(30)  # increased timeout for more reliable connections
+def create_connection_to_server(HOST, PORT):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.settimeout(30)  # increased timeout for more reliable connections
     try:
-        sock.connect((host, port))
-        return sock
+        client.connect((HOST, PORT))
+        return client
     except socket.timeout:
         print(f"Connection timed out. Check server availability.")
         return None
@@ -30,57 +32,59 @@ def create_connection(host, port):
         print(f"Error creating connection: {e}")
         return None
 
-def display_progress(base_line, part_num, percent):
+# hien thi tien trinh download
+def display_progress_download(base_line, part_num, percent):
     with lock:
         target_line = base_line + part_num
-        sys.stdout.write(f'\033[{target_line}H') # di chuyen con tro den dong target_line
-        sys.stdout.write('\033[2K') # xoa dong hien tai
+        sys.stdout.write(f'\033[{target_line}H')    # di chuyen con tro den dong target_line
+        sys.stdout.write('\033[2K')                 # xoa dong hien tai
         sys.stdout.write(f"Part {part_num} - Progress: {percent:.2f}% / 100%\r") # hien thi tien trinh
-        sys.stdout.flush() 
-        time.sleep(0.01) # Consider removing or adjusting sleep time
+        sys.stdout.flush()
+        time.sleep(0.01)
 
-def download_part(host, port, file_name, part_num, start, end, base_line, part_size):
-    sock = None
+# download tung part
+def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_size):
+    client = None
     try:
-        sock = create_connection(host, port)
-        if not sock:
+        client = create_connection_to_server(HOST, PORT)
+        if not client:
             return False
 
-        sock.recv(1024)
+        client.recv(BUFFER_SIZE) # nhan thong bao tu server
 
         request = f"{file_name}|{start}-{end}".encode() # goi du lieu lai theo format cho server
-        sock.sendall(request) # gui request cho server
+        client.sendall(request) # gui request cho server
 
         part_path = f"./{DOWNLOAD_FOLDER}/{file_name}.part{part_num}"
         with open(part_path, "wb") as f:
-            received = 0
+            received = 0 # bien luu tru so byte da nhan
             while received < part_size:
-                # nhan kich thuoc chunk nho nhat giua 4096 va part_size - received
-                chunk_size = min(4096, part_size - received) 
-                data = sock.recv(chunk_size)
+                # nhan kich thuoc chunk nho nhat giua BUFFER_SIZE va phan kich thuoc con lai
+                chunk_size = min(BUFFER_SIZE, part_size - received) 
+                data = client.recv(chunk_size)                          # nhan du lieu
                 if not data:
                     raise ConnectionError(f"Connection lost at {received} bytes")
-                f.write(data) # ghi du lieu vao file
-                received += len(data) # cap nhat so byte da nhan
-                percent = min(received / part_size * 100, 100) # tinh phan tram de hien thi tien trinh
-                display_progress(base_line, part_num, percent) # hien thi tien trinh
-
+                f.write(data)                                           # ghi du lieu vao file
+                received += len(data)                                   # cap nhat so byte da nhan
+                percent = min(received / part_size * 100, 100)          # tinh phan tram de hien thi tien trinh
+                display_progress_download(base_line, part_num, percent) # hien thi tien trinh
         return True
 
     except Exception as e:
-        logging.exception(f"Error downloading part {part_num} of {file_name}: {e}")  #Log the exception
+        logging.exception(f"Error downloading part {part_num} of {file_name}: {e}") #Log the exception
         return False
     finally:
-        if sock:
-            sock.close()
+        if client:
+            client.close()
 
+# gop cac part lai thanh file hoan chinh
 def merge_parts(file_name, parts):
     output_path = f"./{DOWNLOAD_FOLDER}/{file_name}"
     try:
         with open(output_path, "wb") as output_file:
             for part_path in parts:
                 with open(part_path, "rb") as part_file:
-                    while chunk := part_file.read(8192):
+                    while chunk := part_file.read(BUFFER_SIZE):
                         output_file.write(chunk)
                 os.remove(part_path)
         return True
@@ -88,28 +92,33 @@ def merge_parts(file_name, parts):
         logging.exception(f"Error merging parts for {file_name}: {e}") #Log exception
         return False
 
-def download_file(host, port, file_name, file_size):
-    global last_used_line
+# download file
+def download_file(HOST, PORT, file_name, file_size):
+    global last_used_line_in_terminal
     os.makedirs(DOWNLOAD_FOLDER, exist_ok=True) # tao thu muc data neu chua co
     part_size = file_size // 4
-    futures = []
-    parts = []
+    futures = []    # luu tru cac future cua tung part
+    parts = []      # luu tru cac part da download
 
-    base_line = last_used_line + 1
-    last_used_line = base_line + 6
+    base_line = last_used_line_in_terminal + 1 # tinh toan dong bat dau hien thi tien trinh download tren terminal
+    last_used_line_in_terminal = base_line + 6 # cap nhat dong cuoi cung su dung tren terminal
 
-    logging.info(f"Starting download of {file_name}...") # check log
+    logging.info(f"Starting download of {file_name}...") # check log (can comment this line to disable log)
     print(f"\033[{base_line}HDownloading {file_name}...\n")
 
+    # cho toi da 4 ket noi cung luc
     with ThreadPoolExecutor(max_workers=4) as executor:
         for i in range(4):
+            # chia theo kieu 10 => 3 3 3 1
             start = i * part_size
-            end = start + part_size if i < 3 else file_size
-            # check log range start and end
+            end = (start + part_size) if i < 3 else (file_size)
+
+            # check log range start and end (can comment this line to disable log)
             logging.info(f"Downloading {file_name} part {i + 1}: start={start}, end={end}")
             
-            future = executor.submit(download_part, host, port, file_name, i + 1, start, end, base_line, part_size)
-            futures.append(future)
+            # tao future cho tung part de xu ly song song
+            future = executor.submit(download_part, HOST, PORT, file_name, i + 1, start, end, base_line, part_size)
+            futures.append(future) # luu tru future
 
         for i, future in enumerate(as_completed(futures)):
             if not future.result():
@@ -120,7 +129,7 @@ def download_file(host, port, file_name, file_size):
 
     success = merge_parts(file_name, parts)
     try:
-        merged_file_size = os.path.getsize(f"./{DOWNLOAD_FOLDER}/{file_name}")
+        merged_file_size = os.path.getsize(f"./{DOWNLOAD_FOLDER}/{file_name}") # lay kich thuoc file sau khi gop
         # check kich thuoc file vua download voi kich thuoc file goc tren server
         if success and merged_file_size == file_size:
             print(f"\033[{base_line + 5}HDownload {file_name} completed successfully!\n")
@@ -131,29 +140,34 @@ def download_file(host, port, file_name, file_size):
         print(f"\033[{base_line + 5}HDownload of {file_name} failed! Merged file not found.")
     return success
 
-def get_file_list_can_download(host, port):
-    sock = create_connection(host, port)
-    if not sock:
+# lay danh sach file co the download
+def get_file_list_can_download(HOST, PORT):
+    client = create_connection_to_server(HOST, PORT)
+    if not client:
         return []  # Return empty list if connection fails
 
     try:
-        file_list_str = sock.recv(4096).decode().strip()
+        file_list_str = client.recv(BUFFER_SIZE).decode().strip()
+        file_list = []
+        
+        # hien thi file co the download tren terminal phia client
         print("Available files that client can download:")
         for line in file_list_str.splitlines():
             if "|" in line:
                 file_name, file_size = line.split("|")
+                file_list.append((file_name, file_size)) # ghi du lieu vao file_list
                 print(f"{file_name} - {file_size} bytes")
-        # tra ve danh sach file va kich thuoc file da duoc xu li
-        return [line.split("|") for line in file_list_str.splitlines() if "|" in line]
+        return file_list
+    
     except Exception as e:
         print(f"Error getting file list: {e}")
         return []
     finally:
-        if sock:
-            sock.close()
+        if client:
+            client.close()
 
 # check new file in input.txt
-def process_input_file(host, port, server_files, processed_files):
+def process_input_file(HOST, port, server_files, processed_files):
     if not os.path.exists(REQUEST_DOWNLOAD_FILE):
         return processed_files
 
@@ -177,7 +191,7 @@ def process_input_file(host, port, server_files, processed_files):
             if file_name in server_files:
                 file_size = server_files[file_name]
                 try:
-                    download_file(host, port, file_name, file_size)
+                    download_file(HOST, port, file_name, file_size)
                 except Exception as e:
                     print(f"[ERROR] Failed to download {file_name}: {e}")
             else:
@@ -189,30 +203,27 @@ def process_input_file(host, port, server_files, processed_files):
     return processed_files
 
 def main():
-    global last_used_line
-    host = input("Host Name: ")
-    port = 9876
+    global last_used_line_in_terminal
+    HOST = input("HOST Name: ")
 
-    file_list = get_file_list_can_download(host, port)
+    file_list = get_file_list_can_download(HOST, PORT)
     if not file_list:
         return  # Exit if file list retrieval fails
 
     server_files = {file_name: int(file_size_str) for file_name, file_size_str in file_list}
-    last_used_line = len(file_list) + 5
+    last_used_line_in_terminal = len(file_list) + 5
 
     # track already processed files
     processed_files = []
-    processed_files = process_input_file(host, port, server_files, processed_files)
+    processed_files = process_input_file(HOST, PORT, server_files, processed_files)
 
     try:
         while True:
             # check for updates in input.txt every 5 seconds
             time.sleep(5)
-
-            # process the input.txt to check for any new files
-            processed_files = process_input_file(host, port, server_files, processed_files)
+            processed_files = process_input_file(HOST, PORT, server_files, processed_files)
     except KeyboardInterrupt:
-        print("\nProcess interrupted by user. Exiting...")
+        print("\nClient terminated...")
 
 if __name__ == "__main__":
     main()
