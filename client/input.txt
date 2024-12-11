@@ -1,4 +1,2 @@
-info.txt
-abc.txt
+jinx.png
 avt.jpeg
-diem.txt
