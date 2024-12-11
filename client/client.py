@@ -130,25 +130,32 @@ def download_file(HOST, PORT, file_name, file_size):
         print(f"\033[{base_line + 5}HDownload of {file_name} failed! Merged file not found.")
     return success
 
-# lay danh sach file co the download
 def get_file_list_can_download(HOST, PORT):
     client = create_connection_to_server(HOST, PORT)
     if not client:
-        return []  # Return empty list if connection fails
+        return []
 
     try:
+       # nhan danh sach file tu server
         file_list_str = client.recv(BUFFER_SIZE).decode().strip()
         file_list = []
         
-        # hien thi file co the download tren terminal phia client
         print("Available files that client can download:")
         for line in file_list_str.splitlines():
-            if "|" in line:
-                file_name, file_size = line.split("|")
-                file_list.append((file_name, file_size)) # ghi du lieu vao file_list
-                print(f"{file_name} - {file_size} bytes")
+            if " " in line:
+                file_name = line.split(" ")[0] # lay ten file
+                
+                # gui request file size cho server de lay kich thuoc goc
+                client.sendall(file_name.encode())
+                response = client.recv(BUFFER_SIZE).decode().strip()
+                
+                try:
+                    file_size = int(response)
+                    file_list.append((file_name, file_size))
+                    print(f"[{file_name}]")
+                except ValueError:
+                    print(f"Error getting size for {file_name}: {response}")          
         return file_list
-    
     except Exception as e:
         print(f"Error getting file list: {e}")
         return []
@@ -181,6 +188,7 @@ def process_input_file(HOST, port, server_files, processed_files):
                 file_size = server_files[file_name]
                 try:
                     download_file(HOST, port, file_name, file_size)
+                    pass
                 except Exception as e:
                     print(f"[ERROR] Failed to download {file_name}: {e}")
             else:

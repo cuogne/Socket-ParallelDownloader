@@ -1,7 +1,7 @@
-mmt.txt|43
-arya.gif|3707944
-info.txt|65
-jinx.png|2445272
-background.jpg|4592619
-alime.jpeg|23765
-avt.jpeg|51573
+mmt.txt 43.000B
+arya.gif 3.536MB
+info.txt 65.000B
+jinx.png 2.332MB
+background.jpg 4.380MB
+alime.jpeg 23.208KB
+avt.jpeg 50.364KB
