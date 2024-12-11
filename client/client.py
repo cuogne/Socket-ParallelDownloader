@@ -188,7 +188,6 @@ def process_input_file(HOST, port, server_files, processed_files):
                 file_size = server_files[file_name]
                 try:
                     download_file(HOST, port, file_name, file_size)
-                    pass
                 except Exception as e:
                     print(f"[ERROR] Failed to download {file_name}: {e}")
             else:
