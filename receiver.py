@@ -3,7 +3,6 @@ import socket
 import threading
 import sys
 import time
-import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 REQUEST_DOWNLOAD_FILE = "input.txt" # file chua danh sach file can download
@@ -13,10 +12,6 @@ PORT = 9876                         # port ket noi toi server
 
 lock = threading.Lock()             # khoa de tranh xung dot
 last_used_line_in_terminal = 0      # dong cuoi cung su dung tren terminal
-
-# debug check log, you can comment this line to disable log
-logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 # tao ket noi toi server
 def create_connection_to_server(HOST, PORT):
@@ -65,14 +60,12 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
                 if not data:
                     raise ConnectionError(f"Connection lost at {received} bytes")
                 f.write(data)                                           # ghi du lieu vao file
-                received += len(data)                                   # cap nhat so byte da nhan
-                # logging.info(f"Received: {received} bytes in part {part_num} of {file_name}")                     
+                received += len(data)                                   # cap nhat so byte da nhan                     
                 percent = min(received / part_size * 100, 100)          # tinh phan tram de hien thi tien trinh
                 display_progress_download(base_line, part_num, percent) # hien thi tien trinh
         return True
 
     except Exception as e:
-        logging.exception(f"Error downloading part {part_num} of {file_name}: {e}") #Log the exception
         return False
     finally:
         if client:
@@ -90,7 +83,6 @@ def merge_parts(file_name, parts):
                 os.remove(part_path)
         return True
     except Exception as e:
-        logging.exception(f"Error merging parts for {file_name}: {e}") #Log exception
         return False
 
 # download file
@@ -104,28 +96,23 @@ def download_file(HOST, PORT, file_name, file_size):
     base_line = last_used_line_in_terminal + 1 # tinh toan dong bat dau hien thi tien trinh download tren terminal
     last_used_line_in_terminal = base_line + 6 # cap nhat dong cuoi cung su dung tren terminal
 
-    logging.info(f"Starting download of {file_name}...") # check log (can comment this line to disable log)
     print(f"\033[{base_line}HDownloading {file_name}...\n")
 
     # cho toi da 4 ket noi cung luc
     with ThreadPoolExecutor(max_workers=4) as executor:
         for i in range(4):
-            # chia theo kieu 10 => 3 3 3 1
             start = i * (file_size // 4)
             end = file_size if i == 3 else (i + 1) * (file_size // 4)
             
             part_size = end - start # tinh kich thuoc cua part
             
-            # check log range start and end (can comment this line to disable log)
-            logging.info(f"Downloading {file_name} part {i + 1}: start={start}, end={end}")
-            
             # tao future cho tung part de xu ly song song
             future = executor.submit(download_part, HOST, PORT, file_name, i + 1, start, end, base_line, part_size)
             futures.append(future) # luu tru future
 
+        # kiem tra ket qua download cua tung part xem co thanh cong hay khong
         for i, future in enumerate(as_completed(futures)):
             if not future.result():
-                logging.error(f"Failed to download part {i + 1} of {file_name}. Aborting download.")
                 return False
             else:
                 parts.append(f"./{DOWNLOAD_FOLDER}/{file_name}.part{i + 1}")
@@ -186,7 +173,6 @@ def process_input_file(HOST, port, server_files, processed_files):
 
     if new_files:  # if have new file
         if check_updated_file and processed_files:
-            #print("[UPDATE] Updated file in input.txt:")
             print("\n".join(new_files))
 
         # download new files
