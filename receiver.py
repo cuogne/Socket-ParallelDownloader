@@ -10,7 +10,8 @@ REQUEST_DOWNLOAD_FILE = "input.txt"
 DOWNLOAD_FOLDER = "data"
 
 # debug check log, you can comment this line to disable log
-logging.basicConfig(filename='client_log.log', level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 lock = threading.Lock()
 last_used_line = 0
@@ -47,7 +48,7 @@ def download_part(host, port, file_name, part_num, start, end, base_line, part_s
 
         sock.recv(1024)
 
-        request = f"{file_name}|{start}-{end}".encode() # goi du lieu lai
+        request = f"{file_name}|{start}-{end}".encode() # goi du lieu lai theo format cho server
         sock.sendall(request) # gui request cho server
 
         part_path = f"./{DOWNLOAD_FOLDER}/{file_name}.part{part_num}"
@@ -89,7 +90,7 @@ def merge_parts(file_name, parts):
 
 def download_file(host, port, file_name, file_size):
     global last_used_line
-    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True) # tao thu muc data neu chua co
     part_size = file_size // 4
     futures = []
     parts = []
@@ -104,6 +105,9 @@ def download_file(host, port, file_name, file_size):
         for i in range(4):
             start = i * part_size
             end = start + part_size if i < 3 else file_size
+            # check log range start and end
+            logging.info(f"Downloading {file_name} part {i + 1}: start={start}, end={end}")
+            
             future = executor.submit(download_part, host, port, file_name, i + 1, start, end, base_line, part_size)
             futures.append(future)
 
@@ -119,24 +123,28 @@ def download_file(host, port, file_name, file_size):
         merged_file_size = os.path.getsize(f"./{DOWNLOAD_FOLDER}/{file_name}")
         # check kich thuoc file vua download voi kich thuoc file goc tren server
         if success and merged_file_size == file_size:
-            print(f"\033[{base_line + 5}HDownload completed successfully for {file_name}!\n")
+            print(f"\033[{base_line + 5}HDownload {file_name} completed successfully!\n")
             print(f"\033[{base_line + 6}H" + "-" * 40)
         else:
-            print(f"\033[{base_line + 5}HDownload of {file_name} completed with errors! Check the files. Size mismatch: Expected {file_size}, Got {merged_file_size if success else 'N/A'}\n")
+            print(f"\033[{base_line + 5}HDownload {file_name} errors! Expected:{file_size}, Got:{merged_file_size}\n")
     except FileNotFoundError:
         print(f"\033[{base_line + 5}HDownload of {file_name} failed! Merged file not found.")
     return success
 
-def get_file_list_from_server(host, port):
+def get_file_list_can_download(host, port):
     sock = create_connection(host, port)
     if not sock:
         return []  # Return empty list if connection fails
 
     try:
         file_list_str = sock.recv(4096).decode().strip()
-        print("Available files:")
-        print(file_list_str)
-        return [line.split("|") for line in file_list_str.splitlines() if "|" in line]  # More robust splitting
+        print("Available files that client can download:")
+        for line in file_list_str.splitlines():
+            if "|" in line:
+                file_name, file_size = line.split("|")
+                print(f"{file_name} - {file_size} bytes")
+        # tra ve danh sach file va kich thuoc file da duoc xu li
+        return [line.split("|") for line in file_list_str.splitlines() if "|" in line]
     except Exception as e:
         print(f"Error getting file list: {e}")
         return []
@@ -161,7 +169,7 @@ def process_input_file(host, port, server_files, processed_files):
 
     if new_files:  # if have new file
         if check_updated_file and processed_files:
-            print("[UPDATE] Updated file in input.txt:")
+            #print("[UPDATE] Updated file in input.txt:")
             print("\n".join(new_files))
 
         # download new files
@@ -185,7 +193,7 @@ def main():
     host = input("Host Name: ")
     port = 9876
 
-    file_list = get_file_list_from_server(host, port)
+    file_list = get_file_list_can_download(host, port)
     if not file_list:
         return  # Exit if file list retrieval fails
 

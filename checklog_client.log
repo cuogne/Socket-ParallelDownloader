@@ -1,0 +1,56 @@
+2024-12-11 01:47:12,088 - INFO - Starting download of jinx.png...
+2024-12-11 01:47:12,123 - INFO - Starting download of background.jpg...
+2024-12-11 11:07:52,574 - INFO - Starting download of jinx.png...
+2024-12-11 11:07:59,660 - ERROR - Error downloading part 2 of jinx.png: Connection lost at 611318 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 611318 bytes
+2024-12-11 11:07:59,666 - ERROR - Failed to download part 1 of jinx.png. Aborting download.
+2024-12-11 11:07:59,925 - ERROR - Error downloading part 1 of jinx.png: Connection lost at 611318 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 611318 bytes
+2024-12-11 11:07:59,975 - ERROR - Error downloading part 3 of jinx.png: Connection lost at 611318 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 611318 bytes
+2024-12-11 11:08:00,000 - ERROR - Error downloading part 4 of jinx.png: Connection lost at 611318 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 611318 bytes
+2024-12-11 11:08:00,001 - INFO - Starting download of background.jpg...
+2024-12-11 11:08:05,602 - ERROR - Error downloading part 4 of background.jpg: Connection lost at 1148154 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 1148154 bytes
+2024-12-11 11:08:05,603 - ERROR - Failed to download part 1 of background.jpg. Aborting download.
+2024-12-11 11:08:08,939 - ERROR - Error downloading part 1 of background.jpg: Connection lost at 1148154 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 1148154 bytes
+2024-12-11 11:08:12,230 - ERROR - Error downloading part 3 of background.jpg: Connection lost at 1148154 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 1148154 bytes
+2024-12-11 11:08:13,886 - ERROR - Error downloading part 2 of background.jpg: Connection lost at 1148154 bytes
+Traceback (most recent call last):
+  File "/Users/cuong/Documents/Code/socket/receiver.py", line 61, in download_part
+    raise ConnectionError(f"Connection lost at {received} bytes")
+ConnectionError: Connection lost at 1148154 bytes
+2024-12-11 13:30:47,792 - INFO - Starting download of jinx.png...
+2024-12-11 13:30:47,793 - INFO - Downloading jinx.png part 1: start=0, end=611318
+2024-12-11 13:30:47,793 - INFO - Downloading jinx.png part 2: start=611318, end=1222636
+2024-12-11 13:30:47,793 - INFO - Downloading jinx.png part 3: start=1222636, end=1833954
+2024-12-11 13:30:47,794 - INFO - Downloading jinx.png part 4: start=1833954, end=2445272
+2024-12-11 13:31:15,247 - INFO - Starting download of avt.jpeg...
+2024-12-11 13:31:15,248 - INFO - Downloading avt.jpeg part 1: start=0, end=12893
+2024-12-11 13:31:15,248 - INFO - Downloading avt.jpeg part 2: start=12893, end=25786
+2024-12-11 13:31:15,249 - INFO - Downloading avt.jpeg part 3: start=25786, end=38679
+2024-12-11 13:31:15,249 - INFO - Downloading avt.jpeg part 4: start=38679, end=51573

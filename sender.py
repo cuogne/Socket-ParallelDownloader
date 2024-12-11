@@ -12,7 +12,8 @@ file_lock = threading.Lock()
 print(f"Server started at {sock.getsockname()}")
 
 # doc danh sach file trong thu muc resources va ghi vao file text.txt
-def load_file_list():
+# ham nay chi ghi tu dong cho file text.txt de kh phai nhap thu cong (co the comment lai)
+def write_text():
     resources_dir = os.path.join(os.path.dirname(__file__), SERVER_DATA_PATH)
     text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
     
@@ -33,6 +34,7 @@ def handle_client(client_sock, addr):
 
         while True:
             # nhan yeu cau file download tu client
+            # request = f"{file_name}|{start}-{end}".encode() (ben client)
             try:
                 request = client_sock.recv(1024).decode().strip()
             except ConnectionResetError:
@@ -42,7 +44,7 @@ def handle_client(client_sock, addr):
                 break
             
             # xu li du lieu {file_name}|{start}-{end}
-            parts = request.split('|')
+            parts = request.split('|') # tach file_name va range
             if len(parts) != 2:
                 client_sock.send("Invalid request format.".encode())
                 continue
@@ -73,7 +75,7 @@ def handle_client(client_sock, addr):
         client_sock.close()
 
 def run():
-    load_file_list()
+    write_text()
     try:
         while True:
             client_sock, addr = sock.accept()
