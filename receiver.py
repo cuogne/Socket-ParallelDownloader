@@ -66,6 +66,7 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
                     raise ConnectionError(f"Connection lost at {received} bytes")
                 f.write(data)                                           # ghi du lieu vao file
                 received += len(data)                                   # cap nhat so byte da nhan
+                # logging.info(f"Received: {received} bytes in part {part_num} of {file_name}")                     
                 percent = min(received / part_size * 100, 100)          # tinh phan tram de hien thi tien trinh
                 display_progress_download(base_line, part_num, percent) # hien thi tien trinh
         return True
@@ -96,7 +97,7 @@ def merge_parts(file_name, parts):
 def download_file(HOST, PORT, file_name, file_size):
     global last_used_line_in_terminal
     os.makedirs(DOWNLOAD_FOLDER, exist_ok=True) # tao thu muc data neu chua co
-    part_size = file_size // 4
+    # part_size = file_size // 4
     futures = []    # luu tru cac future cua tung part
     parts = []      # luu tru cac part da download
 
@@ -110,9 +111,11 @@ def download_file(HOST, PORT, file_name, file_size):
     with ThreadPoolExecutor(max_workers=4) as executor:
         for i in range(4):
             # chia theo kieu 10 => 3 3 3 1
-            start = i * part_size
-            end = (start + part_size) if i < 3 else (file_size)
-
+            start = i * (file_size // 4)
+            end = file_size if i == 3 else (i + 1) * (file_size // 4)
+            
+            part_size = end - start # tinh kich thuoc cua part
+            
             # check log range start and end (can comment this line to disable log)
             logging.info(f"Downloading {file_name} part {i + 1}: start={start}, end={end}")
             

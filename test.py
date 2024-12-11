@@ -1,5 +1,7 @@
+import os
 import sys
 import time
+import math
 
 def cursor_demo():
     # Clear màn hình
@@ -51,10 +53,26 @@ def cursor_demo():
 
 # cursor_demo()
 
-for i in range(4):
-    sys.stdout.write(f'\033[B hello{i}')
-    sys.stdout.flush()
-    time.sleep(1)
-    sys.stdout.write('\033[2K\r')
-    sys.stdout.flush()
-print("\nxin chao")
+# for i in range(4):
+#     sys.stdout.write(f'\033[B hello{i}')
+#     sys.stdout.flush()
+#     time.sleep(1)
+#     sys.stdout.write('\033[2K\r')
+#     sys.stdout.flush()
+# print("\nxin chao")
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return f"{s} {size_name[i]}"
+
+data_size = os.path.getsize('./resources/background.jpg')
+print(data_size // 4)
+print(data_size - (data_size // 4)*3)
+
+data_size = convert_size(data_size)
+print(data_size)
