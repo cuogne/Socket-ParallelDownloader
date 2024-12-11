@@ -1,9 +1,6 @@
 # Socket - Transfer File with Python
 > A project about Socket of Computer Networking in HCMUS
 
-> Note: This product is currently in the testing phase and is not yet complete. 
-- It will be updated in the future (this will be fixed to match the functionality of the project).
-
 Current directory structure 
 ```
 client/
@@ -27,7 +24,7 @@ README.md
 ```
 
 - The `resources` directory contains the files (Storage)
-- The `text.txt` file stores the information of the files that the client needs to download to the server.
+- The `text.txt` file stores the information of the files that the client can download from the server.
 - The `data` folder is where the downloaded files from the server to the client will be saved.
 - The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
