@@ -1,7 +1,7 @@
 # Socket - MultiThreaded File Transfer with Python
 > A project about Socket of Computer Networking in HCMUS
 
-# Introduction to the project
+## Introduction to the project
 - This project is about transferring files between the server and the client using sockets and multithreading in Python. 
 - The server will store the files in the `resources` directory, server will also store the information of the files that client can download from server to client in the `text.txt` file.
 
@@ -15,7 +15,7 @@
 
 - When the client completes the download, you can press "Ctrl + C" to terminate the program in client.
 
-# Current directory structure 
+## Current directory structure 
 ```
 client/
 ├── data/  
@@ -42,7 +42,7 @@ README.md
 - The `data` folder is where the downloaded files from the server to the client will be saved.
 - The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
-# Requirements
+## Requirements
 
 > [COMPLETED] Multiple clients can get a list of files from the Server and ctrl-c
 
@@ -55,7 +55,7 @@ README.md
 > [COMPLETED] The downloaded file must be correct and have enough capacity
 
 
-# Run test
+## Run test
 ### 1. Open the terminal and paste the following command:
 
 ```zsh
