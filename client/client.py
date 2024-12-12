@@ -133,6 +133,7 @@ def download_file(HOST, PORT, file_name, file_size):
 def get_file_list_can_download(HOST, PORT):
     client = create_connection_to_server(HOST, PORT)
     if not client:
+        print("IP Address or Port is incorrect!")
         return []
 
     try:
