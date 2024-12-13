@@ -5,7 +5,6 @@ import threading
 RESOURCES_SERVER = 'resources'
 TEXT_FILE = 'text.txt'
 BUFFER_SIZE = 4096
-FORMAT = 'utf-8'
 
 init_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 init_server.bind((socket.gethostname(), 9876))
@@ -28,7 +27,7 @@ def write_text():
     resources_dir = os.path.join(os.path.dirname(__file__), RESOURCES_SERVER)
     text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
     
-    with open(text_file, 'w', encoding=FORMAT) as f:
+    with open(text_file, 'w') as f:
         for file_name in os.listdir(resources_dir):
             file_path = os.path.join(resources_dir, file_name)
             if os.path.isfile(file_path):
@@ -41,33 +40,33 @@ def handle_client(server, addr):
         resources_dir = os.path.join(os.path.dirname(__file__), RESOURCES_SERVER)
         
         # gui danh sach file co the down cho client
-        with open(text_file, 'r', encoding=FORMAT) as f:
+        with open(text_file, 'r') as f:
             file_list = f.read()
-        server.send(file_list.encode(FORMAT))
+        server.send(file_list.encode())
 
         while True:
             # nhan request tu client
-            request = server.recv(BUFFER_SIZE).decode(FORMAT).strip()
+            request = server.recv(BUFFER_SIZE).decode().strip()
             if not request:
                 break
             
             # request voi format kh co '|' thi no la request yeu cau file_size
-            # request = f'{file_name}'.encode(FORMAT)
+            # request = f'{file_name}'.encode()
             if '|' not in request:
                 file_path = os.path.join(resources_dir, request)
                 if os.path.isfile(file_path):
                     file_size = os.path.getsize(file_path)
-                    server.send(str(file_size).encode(FORMAT)) # gui file_size ve client
+                    server.send(str(file_size).encode()) # gui file_size ve client
                 else:
-                    server.send(f"File {request} not found.".encode(FORMAT))
+                    server.send(f"File {request} not found.".encode())
                 continue
 
             # request voi format co '|' thi no la request yeu cau tai file va range can down
-            # request = f"{file_name}|{start}-{end}".encode(FORMAT)
+            # request = f"{file_name}|{start}-{end}".encode()
             parts = request.split('|') # tach lam 2 phan: file_name va range [start, end]
             if len(parts) != 2:
-                # sai dinh dang format
-                server.send("Invalid request format.".encode(FORMAT))
+                # sai dinh dang 
+                server.send("Invalid request .".encode())
                 continue
 
             file_name, range_str = parts
@@ -75,7 +74,7 @@ def handle_client(server, addr):
             file_path = os.path.join(resources_dir, file_name)
 
             if not os.path.isfile(file_path):
-                server.send(f"File {file_name} not found.".encode(FORMAT))
+                server.send(f"File {file_name} not found.".encode())
                 continue
 
             #Send file chunk
