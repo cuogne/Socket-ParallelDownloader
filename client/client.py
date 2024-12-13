@@ -3,12 +3,12 @@ import socket
 import threading
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 REQUEST_DOWNLOAD_FILE = "input.txt" # file chua danh sach file can download
 DOWNLOAD_FOLDER = "data"            # thu muc chua file download
 BUFFER_SIZE = 4096                  # kich thuoc buffer nhan du lieu
 PORT = 9876                         # port ket noi toi server
+FORMAT = 'utf-8'                    # dinh dang du lieu
 
 lock = threading.Lock()             # khoa de tranh xung dot
 last_used_line_in_terminal = 0      # dong cuoi cung su dung tren terminal
@@ -47,7 +47,7 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
 
         client.recv(BUFFER_SIZE) # nhan thong bao tu server
 
-        request = f"{file_name}|{start}-{end}".encode() # goi du lieu lai theo format cho server
+        request = f"{file_name}|{start}-{end}".encode(FORMAT) # goi du lieu lai theo format cho server
         client.sendall(request) # gui request cho server
 
         part_path = f"./{DOWNLOAD_FOLDER}/{file_name}.part{part_num}"
@@ -66,6 +66,7 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
         return True
 
     except Exception as e:
+        print(f"Error downloading part {part_num}: {e}")
         return False
     finally:
         if client:
@@ -89,8 +90,8 @@ def merge_parts(file_name, parts):
 def download_file(HOST, PORT, file_name, file_size):
     global last_used_line_in_terminal
     os.makedirs(DOWNLOAD_FOLDER, exist_ok=True) # tao thu muc data neu chua co
-    # part_size = file_size // 4
-    futures = []    # luu tru cac future cua tung part
+    
+    threads = []    # luu tru cac thread cua tung part
     parts = []      # luu tru cac part da download
 
     base_line = last_used_line_in_terminal + 1 # tinh toan dong bat dau hien thi tien trinh download tren terminal
@@ -99,23 +100,27 @@ def download_file(HOST, PORT, file_name, file_size):
     print(f"\033[{base_line}HDownloading {file_name}...\n")
 
     # cho toi da 4 ket noi cung luc
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        for i in range(4):
-            start = i * (file_size // 4)
-            end = file_size if i == 3 else (i + 1) * (file_size // 4)
-            
-            part_size = end - start # tinh kich thuoc cua part
-            
-            # tao future cho tung part de xu ly song song
-            future = executor.submit(download_part, HOST, PORT, file_name, i + 1, start, end, base_line, part_size)
-            futures.append(future) # luu tru future
+    for i in range(4):
+        start = i * (file_size // 4)
+        end = file_size if i == 3 else (i + 1) * (file_size // 4)
+        
+        part_size = end - start # tinh kich thuoc cua part
+        
+        # tao thread cho tung part de xu ly song song
+        thread = threading.Thread(target=download_part, args=(HOST, PORT, file_name, i + 1, start, end, base_line, part_size))
+        threads.append(thread) # luu tru thread
+        thread.start()
 
-        # kiem tra ket qua download cua tung part xem co thanh cong hay khong
-        for i, future in enumerate(as_completed(futures)):
-            if not future.result():
-                return False
-            else:
-                parts.append(f"./{DOWNLOAD_FOLDER}/{file_name}.part{i + 1}")
+    # doi cac thread ket thuc
+    for thread in threads:
+        thread.join()
+
+    # kiem tra ket qua download cua tung part xem co thanh cong hay khong
+    for i in range(4):
+        part_path = f"./{DOWNLOAD_FOLDER}/{file_name}.part{i + 1}"
+        if not os.path.exists(part_path):
+            return False
+        parts.append(part_path)
 
     success = merge_parts(file_name, parts)
     try:
@@ -137,7 +142,7 @@ def get_file_list_can_download(HOST, PORT):
 
     try:
        # nhan danh sach file tu server
-        file_list_str = client.recv(BUFFER_SIZE).decode().strip()
+        file_list_str = client.recv(BUFFER_SIZE).decode(FORMAT).strip()
         file_list = []
         
         print("Available files that client can download:")
@@ -146,8 +151,11 @@ def get_file_list_can_download(HOST, PORT):
                 file_name = line.split(" ")[0] # lay ten file
                 
                 # gui request file size cho server de lay kich thuoc goc
-                client.sendall(file_name.encode())
-                response = client.recv(BUFFER_SIZE).decode().strip()
+                request = f'{file_name}'.encode(FORMAT)
+                client.sendall(request)
+                
+                # nhan response tu server (chua file_size cua file_name yeu cau)
+                response = client.recv(BUFFER_SIZE).decode(FORMAT).strip()
                 
                 try:
                     file_size = int(response)
@@ -164,11 +172,11 @@ def get_file_list_can_download(HOST, PORT):
             client.close()
 
 # check new file in input.txt
-def process_input_file(HOST, port, server_files, processed_files):
+def process_input_file(HOST, port, file_can_download, processed_files):
     if not os.path.exists(REQUEST_DOWNLOAD_FILE):
         return processed_files
 
-    with open(REQUEST_DOWNLOAD_FILE, "r") as file:
+    with open(REQUEST_DOWNLOAD_FILE, "r", encoding=FORMAT) as file:
         file_list = file.read().splitlines()
 
     new_files = []
@@ -184,8 +192,8 @@ def process_input_file(HOST, port, server_files, processed_files):
 
         # download new files
         for file_name in new_files:
-            if file_name in server_files:
-                file_size = server_files[file_name]
+            if file_name in file_can_download:
+                file_size = file_can_download[file_name]
                 try:
                     download_file(HOST, port, file_name, file_size)
                 except Exception as e:
@@ -206,18 +214,22 @@ def main():
     if not file_list:
         return  # Exit if file list retrieval fails
 
-    server_files = {file_name: int(file_size_str) for file_name, file_size_str in file_list}
+    file_can_download = {} # create a dictionary to store file_name and file_size
+    
+    for file_name, file_size in file_list:
+        file_can_download[file_name] = file_size
+        
     last_used_line_in_terminal = len(file_list) + 5
 
     # track already processed files
     processed_files = []
-    processed_files = process_input_file(HOST, PORT, server_files, processed_files)
+    processed_files = process_input_file(HOST, PORT, file_can_download, processed_files)
 
     try:
         while True:
             # check for updates in input.txt every 5 seconds
             time.sleep(5)
-            processed_files = process_input_file(HOST, PORT, server_files, processed_files)
+            processed_files = process_input_file(HOST, PORT, file_can_download, processed_files)
     except KeyboardInterrupt:
         print("\nClient terminated...")
 

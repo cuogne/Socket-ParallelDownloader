@@ -1,7 +1,7 @@
 # Socket - MultiThreaded File Transfer with Python
 > A project about Socket of Computer Networking in HCMUS
 
-## Introduction to the project
+## Introduction to The Project
 - This project is about transferring files between the server and the client using sockets and multithreading in Python. 
 - The server will store the files in the `resources` directory, server will also store the information of the files that client can download from server to client in the `text.txt` file.
 
@@ -9,7 +9,7 @@
 
 - The client will download the requested files listed in the `input.txt` file sequentially. These files will be compared with the list of available files sent from the server. The downloaded files from server to client will be stored in the `data` directory. You can open file `input.txt` and add file name that you want to download from server to client. It will be updated every 5 seconds (if client and server is running).
 
-- For each file to be downloaded, the client will open 4 parallel connections to the server to start downloading parts of the file. The file size can be divided by 4 to request the server to send each chunk to each connection. On the client screen, the download progress percentage (from 0-100%) will be displayed based on the progress of downloading the parts of the file being downloaded (Note: A client is only allowed to open 4 parallel connections to the server to download 1 file). 
+- For each file to be downloaded, the client will open 4 parallel connections to the server to start downloading parts of the file (max 4 connections to the server). The file size can be divided by 4 to request the server to send each chunk to each connection. On the client screen, the download progress percentage (from 0-100%) will be displayed based on the progress of downloading the parts of the file being downloaded.
 
 - After downloading all parts of a file, the client needs to concatenate the downloaded parts into a complete file. This can be verified by checking the total file size and successfully opening the file.
 
@@ -53,7 +53,6 @@ README.md
 > [COMPLETED] Many clients can successfully download all chunks from the server.
 
 > [COMPLETED] The downloaded file must be correct and have enough capacity
-
 
 ## Run test
 ### 1. Open the terminal and paste the following command:
