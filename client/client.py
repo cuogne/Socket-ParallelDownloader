@@ -7,8 +7,7 @@ import time
 REQUEST_DOWNLOAD_FILE = "input.txt" # file chua danh sach file can download
 DOWNLOAD_FOLDER = "data"            # thu muc chua file download
 BUFFER_SIZE = 4096                  # kich thuoc buffer nhan du lieu
-PORT = 9876                         # port ket noi toi server
-FORMAT = 'utf-8'                    # dinh dang du lieu
+PORT = 9876                         # port ket noi toi server                 
 
 lock = threading.Lock()             # khoa de tranh xung dot
 last_used_line_in_terminal = 0      # dong cuoi cung su dung tren terminal
@@ -47,7 +46,7 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
 
         client.recv(BUFFER_SIZE) # nhan thong bao tu server
 
-        request = f"{file_name}|{start}-{end}".encode(FORMAT) # goi du lieu lai theo format cho server
+        request = f"{file_name}|{start}-{end}".encode() # goi du lieu lai theo format cho server
         client.sendall(request) # gui request cho server
 
         part_path = f"./{DOWNLOAD_FOLDER}/{file_name}.part{part_num}"
@@ -142,7 +141,7 @@ def get_file_list_can_download(HOST, PORT):
 
     try:
        # nhan danh sach file tu server
-        file_list_str = client.recv(BUFFER_SIZE).decode(FORMAT).strip()
+        file_list_str = client.recv(BUFFER_SIZE).decode().strip()
         file_list = []
         
         print("Available files that client can download:")
@@ -151,11 +150,11 @@ def get_file_list_can_download(HOST, PORT):
                 file_name = line.split(" ")[0] # lay ten file
                 
                 # gui request file size cho server de lay kich thuoc goc
-                request = f'{file_name}'.encode(FORMAT)
+                request = f'{file_name}'.encode()
                 client.sendall(request)
                 
                 # nhan response tu server (chua file_size cua file_name yeu cau)
-                response = client.recv(BUFFER_SIZE).decode(FORMAT).strip()
+                response = client.recv(BUFFER_SIZE).decode().strip()
                 
                 try:
                     file_size = int(response)
@@ -176,7 +175,7 @@ def process_input_file(HOST, port, file_can_download, processed_files):
     if not os.path.exists(REQUEST_DOWNLOAD_FILE):
         return processed_files
 
-    with open(REQUEST_DOWNLOAD_FILE, "r", encoding=FORMAT) as file:
+    with open(REQUEST_DOWNLOAD_FILE, "r") as file:
         file_list = file.read().splitlines()
 
     new_files = []
