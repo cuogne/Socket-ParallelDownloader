@@ -1,6 +1,0 @@
-mmt.txt|43
-arya.gif|3707944
-info.txt|65
-jinx.png|2445272
-background.jpg|4592619
-alime.jpeg|23765
