@@ -207,6 +207,8 @@ def process_input_file(HOST, port, file_can_download, processed_files):
 
 def main():
     global last_used_line_in_terminal
+    
+    os.system('cls' if os.name == 'nt' else 'clear') # clear terminal while starting
     HOST = input("HOST Name: ")
 
     file_list = get_file_list_can_download(HOST, PORT)
