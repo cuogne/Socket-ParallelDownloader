@@ -2,103 +2,122 @@ import socket
 import os
 import logging
 import time
-import signal
+import threading
 
-# Debug check log
 logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 BUFFER_SIZE = 4096
-SERVER_IP = "127.0.0.1"
+HEADER_SIZE = 20  # Size for packet number
+CHUNK_SIZE = BUFFER_SIZE - HEADER_SIZE
+SERVER_IP = "127.0.0.1" 
 SERVER_PORT = 5000
-CLIENT_PORT = 5001
-TIMEOUT = 5  # Added timeout
+TIMEOUT = 5
+MAX_RETRIES = 3
 
-def start_client_socket():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    client_socket.bind((SERVER_IP, CLIENT_PORT))
-    logging.info("Client started.")
-    return client_socket
+lock = threading.Lock()
+parts_progress = {}
+downloaded_files = set()
 
-def receive_file_list(client_socket, server_address):
-    client_socket.sendto(b"list", server_address)
-    data, _ = client_socket.recvfrom(BUFFER_SIZE * 10)
-    with open("text.txt", "wb") as f:
-        f.write(data)
+def create_socket():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((SERVER_IP, 0))  # Random port
+    sock.settimeout(TIMEOUT)
+    return sock
 
-def display_available_files():
+def display_progress(filename):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print(f"\nDownloading {filename}...")
+    print("Available files:")
+    
     with open("text.txt", "r") as f:
-        print("Available files:")
         for line in f:
             print(line.strip())
-
-def get_filesize(filename):
-    with open("text.txt", "r") as filelist:
-        for line in filelist:
-            if filename in line:
-                return int(line.split()[1])
-    return None
-
-def download_file_part(client_socket, server_address, filename, part, start, end):
-    temp_filename = f"download/{filename}.part{part+1}"
+            
+    print("\nDownloaded files:")
+    for file in downloaded_files:
+        print(file)
+                
+    print(f"\nDownload progress for {filename}:")
+    for part in sorted(parts_progress.keys()):
+        print(f"Part {part+1}: {parts_progress[part]:.2f}%")
+def download_part(filename, part_num, start, end, server_address):
+    sock = create_socket()
+    temp_filename = f"download/{filename}.part{part_num+1}"
     total_bytes = end - start
-
+    
     with open(temp_filename, "wb") as outfile:
         received_bytes = 0
         expected_packet = 0
-
-        while received_bytes < total_bytes:
+        retries = 0
+        
+        # Initialize progress for this part
+        with lock:
+            parts_progress[part_num] = 0
+            display_progress(filename)
+        
+        while received_bytes < total_bytes and retries < MAX_RETRIES:
             try:
                 request = f"download {filename} {start} {end} {expected_packet}"
-                client_socket.sendto(request.encode(), server_address)
-
-                data, _ = client_socket.recvfrom(BUFFER_SIZE)
+                sock.sendto(request.encode(), server_address)
+                
+                data, _ = sock.recvfrom(BUFFER_SIZE)
                 packet_num, chunk = data.split(b"|", 1)
                 packet_num = int(packet_num.decode())
-
+                
                 if packet_num == expected_packet:
                     outfile.write(chunk)
                     received_bytes += len(chunk)
-                    client_socket.sendto(f"ACK {packet_num}".encode(), server_address)
+                    sock.sendto(f"ACK {packet_num}".encode(), server_address)
                     expected_packet += 1
+                    retries = 0
+                    
+                    # Update progress atomically
+                    with lock:
+                        parts_progress[part_num] = (received_bytes * 100) / total_bytes
+                        display_progress(filename)
                 else:
-                    print(f"Out of order packet: got {packet_num}, expected {expected_packet}")
-
+                    logging.warning(f"Out of order packet: got {packet_num}, expected {expected_packet}")
+                    retries += 1
+                    
             except socket.timeout:
-                print(f"Timeout waiting for packet {expected_packet}")
+                logging.warning(f"Timeout waiting for packet {expected_packet} for part {part_num+1}")
+                retries += 1
                 continue
-
-            progress = min(100, received_bytes * 100 / total_bytes)
-            print(f"\rPart {part+1}: {progress:.2f} / 100%", end="")
-        print()
-
+            except Exception as e:
+                logging.error(f"Error downloading part {part_num+1}: {e}")
+                retries += 1
+                
+    sock.close()
     return temp_filename
 
-def combine_file_parts(filename, temp_files, filesize):
-    final_path = f"download/{filename}"
-    with open(final_path, "wb") as outfile:
+def combine_parts(filename, temp_files, filesize):
+    output_path = f"download/{filename}"
+    with open(output_path, "wb") as outfile:
         bytes_written = 0
         for temp_file in temp_files:
             with open(temp_file, "rb") as infile:
-                while chunk := infile.read(BUFFER_SIZE):
+                while chunk := infile.read(CHUNK_SIZE):
                     outfile.write(chunk)
                     bytes_written += len(chunk)
             os.remove(temp_file)
-
+            
     if bytes_written != filesize:
-        print(f"Error: File size mismatch. Expected {filesize}, got {bytes_written}")
-    else:
-        print(f"Successfully downloaded {filename}")
+        raise Exception(f"File size mismatch. Expected {filesize}, got {bytes_written}")
 
 def client():
-    client_socket = start_client_socket()
     server_address = (SERVER_IP, SERVER_PORT)
-
-    receive_file_list(client_socket, server_address)
-    display_available_files()
-
-    downloaded_files = set()
-
+    
+    # Get file list
+    sock = create_socket()
+    sock.sendto(b"list", server_address)
+    data, _ = sock.recvfrom(BUFFER_SIZE * 10)
+    with open("text.txt", "wb") as f:
+        f.write(data)
+    sock.close()
+    
+    display_progress("")
+    
     try:
         while True:
             with open("input.txt", "r") as f:
@@ -106,33 +125,61 @@ def client():
                     filename = filename.strip()
                     if filename in downloaded_files:
                         continue
-
-                    logging.info(f"Starting download of {filename}...")
-
-                    filesize = get_filesize(filename)
+                        
+                    # Get file size
+                    filesize = None
+                    with open("text.txt", "r") as filelist:
+                        for line in filelist:
+                            if filename in line:
+                                filesize = int(line.split()[1])
+                                break
+                                
                     if filesize is None:
-                        logging.error(f"File {filename} not found in the server file list.")
-                        print(f"File {filename} not found in the server file list.")
+                        logging.error(f"File {filename} not found")
                         continue
-                    
-                    input("Press Enter to continue...")
-                    
-                    parts = [(i * (filesize // 4), filesize if i == 3 else (i + 1) * (filesize // 4)) for i in range(4)]
+                        
+                    logging.info(f"Starting download of {filename}")
+                    parts_progress.clear()
+                    threads = []
                     temp_files = []
-                    for i, (start, end) in enumerate(parts):
-                        temp_file = download_file_part(client_socket, server_address, filename, i, start, end)
-                        temp_files.append(temp_file)
-
-                    combine_file_parts(filename, temp_files, filesize)
-                    downloaded_files.add(filename)
-
+                    
+                    # Initialize progress for all parts
+                    for i in range(4):
+                        parts_progress[i] = 0
+                    
+                    # Start download threads simultaneously
+                    for i in range(4):
+                        start = i * (filesize // 4)
+                        end = filesize if i == 3 else (i + 1) * (filesize // 4)
+                        thread = threading.Thread(
+                            target=download_part,
+                            args=(filename, i, start, end, server_address),
+                            daemon=True  # Set as daemon thread
+                        )
+                        threads.append(thread)
+                        temp_files.append(f"download/{filename}.part{i+1}")
+                    
+                    # Start all threads at once
+                    for thread in threads:
+                        thread.start()
+                        
+                    # Wait for all parts
+                    for thread in threads:
+                        thread.join()
+                        
+                    # Combine parts
+                    try:
+                        combine_parts(filename, temp_files, filesize)
+                        downloaded_files.add(filename)
+                        print(f"\nDownload completed for {filename}")
+                    except Exception as e:
+                        logging.error(f"Error combining parts: {e}")
+                        
             time.sleep(5)
+            
     except KeyboardInterrupt:
-        print("\nClient interrupted. Exiting...")
-        logging.info("Client interrupted by user.")
-    finally:
-        client_socket.close()
-
+        print("\nExiting...")
+        
 if __name__ == "__main__":
     if not os.path.exists("download"):
         os.makedirs("download")
