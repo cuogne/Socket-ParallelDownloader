@@ -1,6 +1,8 @@
 import socket
 import os
 import logging
+import signal
+import sys
 
 logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,6 +24,13 @@ def server():
                     filesize = os.path.getsize(filepath)
                     f.write(f"{filename} {filesize}\n")
 
+    def signal_handler(sig, frame):
+        logging.info("Shutting down server...")
+        server_socket.close()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
     while True:
         try:
             data, client_address = server_socket.recvfrom(BUFFER_SIZE)
@@ -36,6 +45,8 @@ def server():
                 filename = request[1]
                 start = int(request[2])
                 end = int(request[3])
+                
+                # Client gửi expected_packet trong request
                 expected_packet = int(request[4])
                 
                 filepath = os.path.join("dataServer", filename)
@@ -45,19 +56,24 @@ def server():
                     chunk_size = BUFFER_SIZE - 20  # Reserve space for packet number
                     offset = expected_packet * chunk_size
                     
+                    # Đọc từ file và gửi cho client
                     if offset < end - start:
                         f.seek(start + offset)
                         chunk = f.read(min(chunk_size, end - (start + offset)))
                         
                         if chunk:
+                            # Server đánh số packet khi gửi
                             packet = f"{expected_packet:010d}|".encode() + chunk
                             server_socket.sendto(packet, client_address)
                             
                             try:
-                                server_socket.settimeout(3)
+                                server_socket.settimeout(3) # Set timeout 3s
                                 ack, _ = server_socket.recvfrom(BUFFER_SIZE)
+                                
+                                # kiem tra ACK co dung so thu tu khong
                                 if not ack.decode().strip() == f"ACK {expected_packet}":
                                     logging.warning(f"Invalid ACK from {client_address}")
+                                    # Server sẽ gửi lại khi client request lại gói tin này
                             except socket.timeout:
                                 logging.warning(f"ACK timeout from {client_address}")
                                 
@@ -65,6 +81,4 @@ def server():
             logging.error(f"Error handling request: {e}")
 
 if __name__ == "__main__":
-    if not os.path.exists("dataServer"):
-        os.makedirs("dataServer")
     server()

@@ -40,7 +40,8 @@ def display_progress(filename):
                 
     print(f"\nDownload progress for {filename}:")
     for part in sorted(parts_progress.keys()):
-        print(f"Part {part+1}: {parts_progress[part]:.2f}%")
+        print(f"Part {part+1}: {parts_progress[part]:.2f} / 100%")
+        
 def download_part(filename, part_num, start, end, server_address):
     sock = create_socket()
     temp_filename = f"download/{filename}.part{part_num+1}"
@@ -58,19 +59,24 @@ def download_part(filename, part_num, start, end, server_address):
         
         while received_bytes < total_bytes and retries < MAX_RETRIES:
             try:
+                # gui request voi expected_packet
                 request = f"download {filename} {start} {end} {expected_packet}"
                 sock.sendto(request.encode(), server_address)
                 
                 data, _ = sock.recvfrom(BUFFER_SIZE)
+                
+                # Nhan packet tu server
                 packet_num, chunk = data.split(b"|", 1)
                 packet_num = int(packet_num.decode())
                 
+                # Kiem tra so thu tu packet
                 if packet_num == expected_packet:
-                    outfile.write(chunk)
-                    received_bytes += len(chunk)
-                    sock.sendto(f"ACK {packet_num}".encode(), server_address)
-                    expected_packet += 1
-                    retries = 0
+                    outfile.write(chunk)                                      # Ghi du lieu vao file
+                    received_bytes += len(chunk)                              # Tang so byte nhan duoc
+                    
+                    sock.sendto(f"ACK {packet_num}".encode(), server_address) # Gui ACK cho server
+                    expected_packet += 1                                      # Tang so thu tu packet
+                    retries = 0                                               # Reset retry counter
                     
                     # Update progress atomically
                     with lock:
