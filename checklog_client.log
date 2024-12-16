@@ -39,3 +39,194 @@
 2024-12-16 22:28:12,584 - INFO - Downloading background.jpg part 2: start=1148154, end=2296308
 2024-12-16 22:28:12,584 - INFO - Downloading background.jpg part 3: start=2296308, end=3444462
 2024-12-16 22:28:12,584 - INFO - Downloading background.jpg part 4: start=3444462, end=4592619
+2024-12-16 23:04:25,761 - INFO - Client started.
+2024-12-16 23:04:26,492 - INFO - Starting download of arya.gif...
+2024-12-16 23:04:26,596 - INFO - Starting download of background.jpg...
+2024-12-17 00:22:15,692 - INFO - Client started.
+2024-12-17 00:22:15,693 - INFO - Starting download of arya.gif...
+2024-12-17 00:22:15,771 - INFO - Starting download of background.jpg...
+2024-12-17 00:25:07,220 - INFO - Client started.
+2024-12-17 00:25:07,222 - INFO - Starting download of arya.gif...
+2024-12-17 00:25:14,848 - INFO - Client interrupted by user.
+2024-12-17 00:27:20,891 - INFO - Client started.
+2024-12-17 00:27:20,892 - INFO - Starting download of arya.gif...
+2024-12-17 00:27:20,963 - INFO - Starting download of background.jpg...
+2024-12-17 00:28:56,113 - INFO - Starting download of avt.jpeg...
+2024-12-17 00:29:04,716 - INFO - Client interrupted by user.
+2024-12-17 00:29:34,853 - INFO - Client started.
+2024-12-17 00:29:34,854 - INFO - Starting download of arya.gif...
+2024-12-17 00:29:49,944 - INFO - Starting download of background.jpg...
+2024-12-17 00:29:57,116 - INFO - Client interrupted by user.
+2024-12-17 00:31:16,058 - INFO - Client started.
+2024-12-17 00:31:16,058 - INFO - Starting download of arya.gif...
+2024-12-17 00:31:19,867 - INFO - Starting download of background.jpg...
+2024-12-17 00:31:23,343 - INFO - Client interrupted by user.
+2024-12-17 00:31:48,554 - INFO - Client started.
+2024-12-17 00:31:48,557 - INFO - Starting download of arya.gif...
+2024-12-17 00:31:51,324 - INFO - Starting download of background.jpg...
+2024-12-17 00:31:55,134 - INFO - Client interrupted by user.
+2024-12-17 00:33:52,715 - INFO - Client started.
+2024-12-17 00:33:52,718 - INFO - Starting download of arya.gif...
+2024-12-17 00:33:54,811 - INFO - Starting download of background.jpg...
+2024-12-17 00:34:12,019 - INFO - Starting download of avt.jpeg...
+2024-12-17 00:34:19,218 - INFO - Client interrupted by user.
+2024-12-17 00:39:17,502 - INFO - Client started.
+2024-12-17 00:39:17,504 - INFO - Starting download of arya.gif...
+2024-12-17 00:39:18,618 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:39:18,619 - WARNING - Out of order packet: got 3, expected 1
+2024-12-17 00:39:28,753 - INFO - Client interrupted by user.
+2024-12-17 00:44:17,051 - INFO - Client started.
+2024-12-17 00:44:17,054 - INFO - Starting download of arya.gif...
+2024-12-17 00:44:18,145 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:44:18,146 - WARNING - Out of order packet: got 1, expected 0
+2024-12-17 00:44:18,147 - WARNING - Out of order packet: got 2, expected 1
+2024-12-17 00:44:18,147 - WARNING - Out of order packet: got 2, expected 1
+2024-12-17 00:44:23,147 - WARNING - Timeout waiting for packet 1
+2024-12-17 00:44:23,147 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:44:23,148 - WARNING - Out of order packet: got 1, expected 4
+2024-12-17 00:44:23,149 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:44:23,149 - WARNING - Out of order packet: got 3, expected 2
+2024-12-17 00:44:28,150 - WARNING - Timeout waiting for packet 1
+2024-12-17 00:44:28,150 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:44:28,151 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:44:28,152 - WARNING - Out of order packet: got 3, expected 2
+2024-12-17 00:44:28,152 - WARNING - Out of order packet: got 2, expected 4
+2024-12-17 00:44:28,153 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:33,153 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:44:33,153 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:44:33,153 - WARNING - Out of order packet: got 3, expected 2
+2024-12-17 00:44:33,153 - WARNING - Out of order packet: got 2, expected 6
+2024-12-17 00:44:33,153 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:33,154 - WARNING - Out of order packet: got 3, expected 7
+2024-12-17 00:44:38,154 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:44:38,155 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:38,155 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:44:38,155 - WARNING - Timeout waiting for packet 7
+2024-12-17 00:44:38,156 - WARNING - Out of order packet: got 6, expected 4
+2024-12-17 00:44:38,157 - WARNING - Out of order packet: got 4, expected 3
+2024-12-17 00:44:43,157 - WARNING - Timeout waiting for packet 7
+2024-12-17 00:44:43,157 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:43,159 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:44:43,159 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:44:43,159 - WARNING - Out of order packet: got 6, expected 4
+2024-12-17 00:44:43,160 - WARNING - Out of order packet: got 4, expected 8
+2024-12-17 00:44:43,160 - WARNING - Out of order packet: got 4, expected 5
+2024-12-17 00:44:43,160 - WARNING - Out of order packet: got 8, expected 4
+2024-12-17 00:44:43,160 - WARNING - Out of order packet: got 5, expected 6
+2024-12-17 00:44:43,160 - WARNING - Out of order packet: got 6, expected 8
+2024-12-17 00:44:48,161 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:44:48,161 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:44:48,161 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:48,161 - WARNING - Timeout waiting for packet 8
+2024-12-17 00:44:48,162 - WARNING - Out of order packet: got 5, expected 6
+2024-12-17 00:44:48,163 - WARNING - Out of order packet: got 9, expected 5
+2024-12-17 00:44:48,163 - WARNING - Out of order packet: got 5, expected 7
+2024-12-17 00:44:53,156 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:44:53,157 - WARNING - Timeout waiting for packet 9
+2024-12-17 00:44:53,158 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:44:53,158 - WARNING - Timeout waiting for packet 8
+2024-12-17 00:44:53,159 - WARNING - Out of order packet: got 5, expected 9
+2024-12-17 00:44:53,159 - WARNING - Out of order packet: got 9, expected 5
+2024-12-17 00:44:53,160 - WARNING - Out of order packet: got 5, expected 6
+2024-12-17 00:44:53,161 - WARNING - Out of order packet: got 6, expected 5
+2024-12-17 00:44:58,155 - WARNING - Timeout waiting for packet 9
+2024-12-17 00:44:58,156 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:44:58,156 - WARNING - Timeout waiting for packet 9
+2024-12-17 00:44:58,157 - WARNING - Out of order packet: got 6, expected 5
+2024-12-17 00:44:58,158 - WARNING - Out of order packet: got 9, expected 10
+2024-12-17 00:44:58,159 - WARNING - Out of order packet: got 10, expected 9
+2024-12-17 00:45:03,153 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:45:03,154 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:45:03,155 - WARNING - Out of order packet: got 6, expected 5
+2024-12-17 00:45:03,155 - WARNING - Out of order packet: got 5, expected 10
+2024-12-17 00:45:03,155 - WARNING - Timeout waiting for packet 10
+2024-12-17 00:45:03,156 - WARNING - Out of order packet: got 5, expected 10
+2024-12-17 00:45:03,156 - WARNING - Out of order packet: got 10, expected 5
+2024-12-17 00:45:03,156 - WARNING - Out of order packet: got 10, expected 5
+2024-12-17 00:45:08,153 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:45:08,154 - WARNING - Timeout waiting for packet 10
+2024-12-17 00:45:08,154 - WARNING - Timeout waiting for packet 10
+2024-12-17 00:45:08,155 - WARNING - Out of order packet: got 10, expected 7
+2024-12-17 00:45:08,155 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:45:08,155 - WARNING - Out of order packet: got 7, expected 6
+2024-12-17 00:45:08,155 - WARNING - Out of order packet: got 6, expected 10
+2024-12-17 00:45:08,156 - WARNING - Out of order packet: got 6, expected 10
+2024-12-17 00:45:08,156 - WARNING - Out of order packet: got 10, expected 7
+2024-12-17 00:45:13,153 - WARNING - Timeout waiting for packet 10
+2024-12-17 00:45:13,155 - WARNING - Timeout waiting for packet 10
+2024-12-17 00:45:13,155 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:45:13,155 - WARNING - Timeout waiting for packet 7
+2024-12-17 00:45:13,531 - INFO - Client interrupted by user.
+2024-12-17 00:46:36,835 - INFO - Client started.
+2024-12-17 00:46:36,837 - INFO - Starting download of arya.gif...
+2024-12-17 00:46:37,599 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:46:37,599 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:46:37,601 - WARNING - Out of order packet: got 1, expected 2
+2024-12-17 00:46:37,601 - WARNING - Out of order packet: got 2, expected 0
+2024-12-17 00:46:42,598 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:46:42,599 - WARNING - Timeout waiting for packet 1
+2024-12-17 00:46:42,601 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:46:42,602 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:46:42,603 - WARNING - Out of order packet: got 2, expected 3
+2024-12-17 00:46:42,603 - WARNING - Out of order packet: got 3, expected 2
+2024-12-17 00:46:42,604 - WARNING - Out of order packet: got 3, expected 2
+2024-12-17 00:46:47,601 - WARNING - Timeout waiting for packet 1
+2024-12-17 00:46:47,603 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:46:47,604 - WARNING - Out of order packet: got 0, expected 2
+2024-12-17 00:46:47,604 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:46:47,606 - WARNING - Out of order packet: got 2, expected 3
+2024-12-17 00:46:47,607 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:46:52,604 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:46:52,608 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:46:52,608 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:46:52,610 - WARNING - Timeout waiting for packet 5
+2024-12-17 00:46:54,112 - INFO - Client interrupted by user.
+2024-12-17 00:51:01,215 - INFO - Client started.
+2024-12-17 00:51:01,218 - INFO - Starting download of arya.gif...
+2024-12-17 00:51:01,220 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:51:01,220 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:51:01,220 - WARNING - Out of order packet: got 1, expected 0
+2024-12-17 00:51:06,221 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:06,221 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:06,222 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:06,222 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:51:06,222 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:51:06,223 - WARNING - Out of order packet: got 3, expected 1
+2024-12-17 00:51:06,224 - WARNING - Out of order packet: got 1, expected 0
+2024-12-17 00:51:06,224 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:51:11,223 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:51:11,225 - WARNING - Timeout waiting for packet 1
+2024-12-17 00:51:11,225 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:11,225 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:51:11,226 - WARNING - Out of order packet: got 2, expected 4
+2024-12-17 00:51:11,226 - WARNING - Out of order packet: got 1, expected 0
+2024-12-17 00:51:11,227 - WARNING - Out of order packet: got 0, expected 1
+2024-12-17 00:51:16,227 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:51:16,228 - WARNING - Timeout waiting for packet 4
+2024-12-17 00:51:16,228 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:16,228 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:51:16,230 - WARNING - Out of order packet: got 0, expected 5
+2024-12-17 00:51:16,231 - WARNING - Out of order packet: got 3, expected 5
+2024-12-17 00:51:16,232 - WARNING - Out of order packet: got 5, expected 3
+2024-12-17 00:51:21,230 - WARNING - Timeout waiting for packet 2
+2024-12-17 00:51:21,231 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:21,232 - WARNING - Out of order packet: got 0, expected 2
+2024-12-17 00:51:21,233 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:51:21,233 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:51:21,234 - WARNING - Out of order packet: got 6, expected 3
+2024-12-17 00:51:21,234 - WARNING - Out of order packet: got 3, expected 6
+2024-12-17 00:51:21,235 - WARNING - Out of order packet: got 3, expected 6
+2024-12-17 00:51:21,236 - WARNING - Out of order packet: got 6, expected 3
+2024-12-17 00:51:26,233 - WARNING - Timeout waiting for packet 0
+2024-12-17 00:51:26,235 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:51:26,237 - WARNING - Timeout waiting for packet 6
+2024-12-17 00:51:26,237 - WARNING - Timeout waiting for packet 3
+2024-12-17 00:51:27,354 - INFO - Client interrupted by user.
+2024-12-17 00:53:08,919 - INFO - Client started.
+2024-12-17 00:53:10,114 - INFO - Starting download of arya.gif...
+2024-12-17 00:53:10,218 - INFO - Starting download of background.jpg...
+2024-12-17 00:54:45,431 - INFO - Client started.
+2024-12-17 00:54:45,434 - INFO - Starting download of arya.gif...
+2024-12-17 00:54:46,813 - INFO - Starting download of background.jpg...
+2024-12-17 00:55:01,293 - INFO - Starting download of avt.jpeg...
+2024-12-17 00:55:04,457 - INFO - Client interrupted by user.
