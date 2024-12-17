@@ -1,8 +1,8 @@
-# Socket - MultiThreaded File Transfer with Python
-> A project about Socket of Computer Networking in HCMUS
+# Socket - MultiThreaded File Transfer with Python using TCP and UDP.
+> A project about Socket of Subject CSC10008 - Computer Networking in HCMUS
 
 ## Introduction to The Project
-- This project is about transferring files between the server and the client using sockets and multithreading in Python. 
+- This project is about transferring files between the server and the client using sockets and multithreading in Python using TCP and UDP. 
 - The server will store the files in the `resources` directory, server will also store the information of the files that client can download from server to client in the `text.txt` file.
 
 - The client connects to the server and receives the list of files from the server `(text.txt)`, displaying them on the screen.
@@ -17,32 +17,60 @@
 
 ## Current directory structure 
 ```
-client/
-├── data/  
-│   ├── 
-│   ├── 
-│   ├── 
-│   ├── 
-├── client.py
-├── input.txt
-server/
-├── resources/
-│   ├── 
-│   ├── 
-│   ├── 
-│   ├── 
-├── text.txt
-├── server.py
+TCP/
+├── client/  
+│   ├── data/
+│   │   ├── arya.gif
+│   │   ├── jinx.png
+│   │   ├── ...
+│   │   ├── ...
+│   ├── client.py
+│   ├── input.txt
+├── server/  
+│   ├── resources/
+│   │   ├── arya.gif
+│   │   ├── jinx.png
+│   │   ├── background.jpg
+│   │   ├── ...
+│   ├── server.py
+│   ├── text.txt
+UDP/
+├── client/  
+│   ├── downloads/
+│   │   ├── arya.gif
+│   │   ├── background.jpg
+│   │   ├── ...
+│   │   ├── ...
+│   ├── checklog_client.log
+│   ├── client.py
+│   ├── input.txt
+├── server/  
+│   ├── dataServer/
+│   │   ├── arya.gif
+│   │   ├── avt.jpeg
+│   │   ├── background.jpg
+│   │   ├── ...
+│   ├── server.py
+│   ├── text.txt
 .gitignore
 README.md
 ```
-
+## TCP - Transmission Control Protocol
 - The `resources` directory contains the files
 - The `text.txt` file stores the information of the files that the client can download from the server.
 - The `data` folder is where the downloaded files from the server to the client will be saved.
 - The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
 
+## UDP - User Datagram Protocol
+- The `dataServer` directory contains the files that the client can download from the server.
+- The `text.txt` file stores the information of the files that the client can download from the server.
+- The `downloads` folder is where the downloaded files from the server to the client will be saved.
+- The `input.txt` file contains information about the files that the client needs to download and upload to the server. This file can have content added to it as needed, and the client will check and update it every 5 seconds.
+- The `checklog_client.log` file contains the log information of the client. It used to check the client's status and the download status of the files.
+
 ## Requirements
+
+### TCP
 
 > [COMPLETED] Multiple clients can get a list of files from the Server and ctrl-c
 
@@ -54,6 +82,14 @@ README.md
 
 > [COMPLETED] The downloaded file must be correct and have enough capacity
 
+### UDP
+
+> [COMPLETED] UDP successfully downloads 1 chunk with rdt (reliable data transfer) mechanism
+
+> [COMPLETED] UDP successfully downloads all chunks with rdt (reliable data transfer) mechanism
+
+More information with the rdt (reliable data transfer) mechanism i used in the UDP project, you can check it out [here](/rdt.txt)
+
 ## Run test
 ### 1. Open the terminal and paste the following command:
 
@@ -63,7 +99,7 @@ git clone https://github.com/cuogne/Socket-TransferFile.git
 
 ### 2. If you haven't installed Python yet, please install it using the following command:
 
-> If you have already installed it, you can skip this step and go to [step 3](#3-open-the-folder-and-navigate-to-the-server-directory)
+> If you have already installed it, you can skip this step and go to [step 3](#3-open-the-folder-and-choose-the-protocol-you-want-to-run-tcpudp)
 
 On macOS:
 ```zsh
@@ -83,13 +119,25 @@ You can check this python version by command:
 python3 --version
 ```
 
-### 3. Open the folder and navigate to the `server` directory:
+### 3. Open the folder and choose the protocol you want to run (TCP/UDP):
+
+```zsh
+cd TCP
+```
+
+```zsh
+cd UDP
+```
+
+> Notes: The steps below are similar for both TCP and UDP
+
+### 4. Navigate to the `server` directory:
 
 ```zsh
 cd server
 ```
 
-### 4. Run the server with the command:
+### 5. Run the server with the command:
 
 ```zsh
 python3 server.py
@@ -97,19 +145,24 @@ python3 server.py
 
 You can see the server is running with host, port information and waiting for the client to connect.
 
-### 5. Open another terminal and navigate to the `client` directory:
+### 6. Open another terminal and navigate to the `client` directory:
 
 ```zsh
 cd client
 ```
 
-### 6. Run the client with the command:
+### 7. Run the client with the command:
 ```zsh
 python3 client.py
 ```
 
-- You can enter the IP address of the server and press Enter, and you will see the list of files that the client can download from the server and the client will start downloading the files.
+- TCP:
+    + You can enter the IP address of the server and press Enter, and you will see the list of files that the client can download from the server and you can press enter to start download, the client will start downloading the files.
+- UDP:
+    + You will see the list of files that the client can download from the server and you can press enter to start download, the client will start downloading the files.
 
 - Open the `input.txt` file in `client` folder and add the file name you want to download from the server to the client. You will be able to see the file name you just added in `input.txt` after 5 seconds and then the client will download file. After downloading the file, you can check the `data` folder to see the downloaded file and press "Ctrl + C" to terminate the program.
+
+With UDP, you can check the `checklog_client.log` file to see the log information of the client.
 
 _Have a nice day !!!_
