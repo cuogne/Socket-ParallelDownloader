@@ -200,6 +200,7 @@ def process_input_file(HOST, port, file_can_download, processed_files):
             if file_name in file_can_download:
                 file_size = file_can_download[file_name]
                 try:
+                    input(f"\nPress Enter to download {file_name}...")
                     download_file(HOST, port, file_name, file_size, file_can_download)
                 except Exception as e:
                     print(f"[ERROR] Failed to download {file_name}: {e}")
