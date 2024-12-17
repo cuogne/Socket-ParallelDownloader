@@ -157,6 +157,9 @@ def client():
                         continue
 
                     logging.info(f"Starting download of {filename}")
+                    
+                    input("Press Enter to start downloading...") # nhan Enter de bat dau download    
+                    
                     parts_progress.clear()
                     threads = []
                     temp_files = []
@@ -165,6 +168,8 @@ def client():
                         parts_progress[i] = 0
                         start = i * (filesize // 4)
                         end = filesize if i == 3 else (i + 1) * (filesize // 4)
+                        
+                        logging.info(f"Downloading part {i+1} of {filename} from {start} to {end}")
                         
                         thread = threading.Thread(
                             target=download_part,
@@ -182,6 +187,7 @@ def client():
                         downloaded_files.add(filename)
                         print(f"\nDownload completed for {filename}")
                     except Exception as e:
+                        print(f"Error combining parts: {e}")
                         logging.error(f"Error combining parts: {e}")
                         
             time.sleep(5)
