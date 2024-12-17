@@ -88,7 +88,7 @@ README.md
 
 > [COMPLETED] UDP successfully downloads all chunks with rdt (reliable data transfer) mechanism
 
-More information with the rdt (reliable data transfer) mechanism i used in the UDP project, you can check it out [here](/rdt.txt)
+More information with the rdt (reliable data transfer) mechanism i used in the UDP project, you can check it out [here](/rdt.md)
 
 ## Run test
 ### 1. Open the terminal and paste the following command:
