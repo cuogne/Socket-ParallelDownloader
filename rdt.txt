@@ -1,0 +1,91 @@
+Cơ chế RDT (Reliable Data Transfer) trong code
+1. Stop-and-Wait ARQ Protocol
+
+# Sender (Client) side:
+request = f"download {filename} {start} {end} {expected_packet}"
+sock.sendto(request.encode(), server_address)
+
+# Wait for response with timeout
+data, _ = sock.recvfrom(BUFFER_SIZE) 
+
+# Send ACK after receiving correct packet
+sock.sendto(f"ACK {packet_num}".encode(), server_address)
+
+2. Các cơ chế đảm bảo tin cậy:
+a. Đánh Số Gói Tin (Sequence Numbers)
+- Theo dõi thứ tự gói tin
+- Kiểm tra tuần tự
+- Xử lý gói tin đến sai thứ tự
+expected_packet = 0  # Số thứ tự gói tin mong đợi
+packet_num = int(packet_num.decode())  # Số thứ tự gói tin nhận được
+if packet_num == expected_packet:  # Kiểm tra đúng thứ tự
+    xử_lý_gói_tin()
+    expected_packet += 1
+b. Timeout & Gửi Lại (Timeout & Retransmission)
+- Số lần thử lại tối đa: 3
+- Thời gian timeout: 5 giây
+- Tăng thời gian chờ theo cấp số nhân
+
+retries = 0
+while retries < MAX_RETRIES:
+    try:
+        gửi_yêu_cầu()
+        đợi_phản_hồi()
+    except socket.timeout:
+        retries += 1
+        continue
+
+c. Phát Hiện Lỗi    
+- Kiểm tra số thứ tự gói tin
+- Xác thực kích thước file
+- Tính toán checksum (nếu cần)  
+
+3. Sơ Đồ Luồng Hoạt Động
+Client                  Server
+  |--- Yêu cầu(seq=n) --->|
+  |                       |
+  |<-- Dữ liệu(seq=n) ----|
+  |                       |
+  |---- ACK(seq=n) ------>|
+
+
+// server
+1. Cơ chế sequence number
+# Client gửi expected_packet trong request
+expected_packet = int(request[4])
+
+# Server đánh số packet khi gửi
+packet = f"{expected_packet:010d}|".encode() + chunk
+
+2. Cơ chế ACK và timeout
+try:
+    server_socket.settimeout(3)  # Set timeout 3s
+    ack, _ = server_socket.recvfrom(BUFFER_SIZE)
+    
+    # Kiểm tra ACK có đúng số thứ tự
+    if not ack.decode().strip() == f"ACK {expected_packet}":
+        logging.warning(f"Invalid ACK from {client_address}")
+        # Server sẽ gửi lại khi client request lại gói tin này
+except socket.timeout:
+    logging.warning(f"ACK timeout from {client_address}")
+    # Server sẽ gửi lại khi client request lại gói tin này
+
+3. Quá trình xử lý mất gói tin:
+- Khi client không nhận được gói tin hoặc nhận sai:
+    + Client sẽ tiếp tục gửi request với cùng expected_packet
+    + Server nhận request -> gửi lại gói tin đó
+- Khi server không nhận được ACK:
+    + Client sẽ gửi lại request trong lần tới
+    + Server sẽ gửi lại gói tin đó
+3. Cơ chế offset đảm bảo đúng vị trí dữ liệu:
+offset = expected_packet * chunk_size
+if offset < end - start:
+    f.seek(start + offset)
+    chunk = f.read(min(chunk_size, end - (start + offset)))
+
+Vậy nên khi có mất mát dữ liệu trong quá trình truyền:
+
+- Client sẽ phát hiện qua sequence number
+- Client request lại gói tin bị mất
+- Server sẽ gửi lại đúng gói tin đó
+- Quá trình lặp lại cho đến khi truyền thành công
