@@ -188,7 +188,7 @@ def process_input_file(HOST, port, file_can_download, processed_files):
 
     if new_files:  # if have new file
         if check_updated_file and processed_files:
-            print("\n".join(new_files))
+            print(f"\nNew files found in input.txt: {new_files}") 
 
         # download new files
         for file_name in new_files:
