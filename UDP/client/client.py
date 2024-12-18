@@ -3,6 +3,7 @@ import os
 import logging
 import time
 import threading
+import hashlib
 
 logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,6 +46,16 @@ def display_progress(filename):
         print(f"\nDownload progress for {filename}:")
         for part in sorted(parts_progress.keys()):
             print(f"Part {part+1}: {parts_progress[part]:.2f}% / 100%")
+            
+def calculate_checksum(filename):
+    hash_md5 = hashlib.md5()
+    with open(filename, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+def verify_checksum(filename, expected_checksum):
+    return calculate_checksum(filename) == expected_checksum
 
 def download_part(filename, part_num, start, end, server_address):
     sock = create_socket()
@@ -184,13 +195,30 @@ def client():
                         
                     try:
                         merge_file_part(filename, temp_files, filesize)
-                        downloaded_files.add(filename)
-                        print(f"\nDownload completed for {filename}")
+                        
+                        # Verify checksum
+                        sock = create_socket()
+                        
+                        # gui request de lay checksum cua file
+                        sock.sendto(f"checksum {filename}".encode(), server_address)
+                        data, _ = sock.recvfrom(BUFFER_SIZE)
+                        expected_checksum = data.decode()
+                        sock.close()
+                        
+                        # kiem tra checksum cua file download voi checksum tu server
+                        if verify_checksum(f"download/{filename}", expected_checksum):
+                            downloaded_files.add(filename)
+                            print(f"\nDownload completed for {filename}")
+                            print("-" * 50)
+                        else:
+                            print(f"Checksum mismatch for {filename}")
+                            logging.error(f"Checksum mismatch for {filename}")
+                        
                     except Exception as e:
                         print(f"Error combining parts: {e}")
                         logging.error(f"Error combining parts: {e}")
                         
-            time.sleep(5)
+            time.sleep(5) # quet file moi 5s
             
     except KeyboardInterrupt:
         print("\nExiting...")

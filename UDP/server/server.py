@@ -3,6 +3,7 @@ import os
 import logging
 import signal
 import sys
+import hashlib
 
 logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,6 +20,13 @@ def change_size(size):
         size /= 1024
         unit_index += 1
     return f"{size:.3f}{units[unit_index]}"
+
+def calculate_checksum(filepath):
+    md5_hash = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            md5_hash.update(chunk)
+    return md5_hash.hexdigest()
 
 def get_list_files():
     with open("text.txt", "w") as f:
@@ -55,6 +63,15 @@ def server():
                 if os.path.isfile(filepath):
                     filesize = os.path.getsize(filepath)
                     server_socket.sendto(str(filesize).encode(), client_address)
+                else:
+                    server_socket.sendto(b"File not found", client_address)
+                    
+            elif request[0] == "checksum":
+                filename = request[1]
+                filepath = os.path.join("dataServer", filename)
+                if os.path.isfile(filepath):
+                    checksum = calculate_checksum(filepath)
+                    server_socket.sendto(checksum.encode(), client_address)
                 else:
                     server_socket.sendto(b"File not found", client_address)
                     
