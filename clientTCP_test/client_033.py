@@ -176,7 +176,8 @@ def process_input_file(HOST, port, file_can_download, processed_files):
         return processed_files
 
     with open(REQUEST_DOWNLOAD_FILE, "r") as file:
-        file_list = file.read().splitlines()
+        # use set to remove duplicate file names (if have)
+        file_list = list(set(file.read().splitlines()))
 
     new_files = []
     check_updated_file = False
@@ -194,6 +195,7 @@ def process_input_file(HOST, port, file_can_download, processed_files):
             if file_name in file_can_download:
                 file_size = file_can_download[file_name]
                 try:
+                    input(f"\nPress Enter to download {file_name}...")
                     download_file(HOST, port, file_name, file_size)
                 except Exception as e:
                     print(f"[ERROR] Failed to download {file_name}: {e}")
