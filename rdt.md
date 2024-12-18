@@ -3,6 +3,12 @@
 ## 1. Giao Thức Stop-and-Wait ARQ
 
 ### Phía Gửi (Client):
+
+- Client gửi request với sequence number
+- Server gửi data packet tương ứng
+- Client gửi ACK sau khi nhận thành công
+- Server đợi ACK trước khi gửi gói tiếp theo
+
 ```python
 request = f"download {filename} {start} {end} {expected_packet}"
 sock.sendto(request.encode(), server_address)
@@ -45,7 +51,36 @@ while retries < MAX_RETRIES:
         continue
 ```
 
-### c. Phát Hiện Lỗi
+### c. Đảm bảo Tính toàn vẹn Dữ liệu
+
+- Kiểm tra file_size.
+
+```python
+if bytes_written != filesize:
+    raise Exception("File size mismatch")
+```
+
+- Kiểm tra MD5 checksum.
+
+```python
+
+import hashlib
+
+def calculate_checksum(filepath):
+    md5_hash = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            md5_hash.update(chunk)
+    return md5_hash.hexdigest()
+
+def verify_checksum(filename, expected_checksum):
+    return calculate_checksum(filename) == expected_checksum
+
+if verify_checksum(filename, expected_checksum):
+
+```
+
+### d. Phát Hiện Lỗi
 - Kiểm tra số thứ tự gói tin.
 - Xác thực kích thước file.
 - Tính toán checksum (nếu cần).
@@ -64,12 +99,19 @@ Client                  Server
 
 ### 1. Cơ Chế Số Thứ Tự Gói Tin
 - Client gửi `expected_packet` trong request.
+- Mỗi gói được đánh số thứ tự 10 chữ số
+- Format: `{sequence_number:010d}|{data}`
 
 ```python
 expected_packet = int(request[4])
 
 # Server đánh số thứ tự cho gói tin
 packet = f"{expected_packet:010d}|".encode() + chunk
+
+# Client nhận và kiểm tra
+packet_num, chunk = data.split(b"|", 1)
+if packet_num == expected_packet:
+    process_data()
 ```
 
 ### 2. Cơ Chế ACK và Timeout
@@ -91,9 +133,26 @@ except socket.timeout:
 - Khi client không nhận được gói tin hoặc nhận sai:
   - Client tiếp tục gửi request với `expected_packet` tương ứng.
   - Server xử lý request và gửi lại gói tin.
+
+```python
+except socket.timeout:
+  # Không nhận được ACK trong 3s
+  # Vòng lặp while sẽ thực hiện lại từ đầu
+  # -> Gửi lại gói tin cũ với cùng sequence number
+  ```
+
 - Khi server không nhận được ACK:
   - Client sẽ gửi lại request trong lần tới.
-  - Server sẽ gửi lại gói tin.
+  - Server sẽ chủ động gửi lại gói tin.
+
+```python
+if ack.decode().strip() == f"ACK {expected_packet}":
+  # ACK đúng -> thoát vòng lặp
+  break
+else:
+  # ACK sai -> vòng lặp tiếp tục
+  # -> Gửi lại gói tin cũ
+```
 
 ### 4. Cơ Chế Offset Đảm Bảo Đúng Vị Trí Dữ Liệu
 ```python
