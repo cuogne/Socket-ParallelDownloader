@@ -4,7 +4,7 @@ import logging
 import signal
 import hashlib
 
-logging.basicConfig(filename='checklog_server.log', level=logging.INFO,
+logging.basicConfig(filename='server.log', level=logging.INFO,
                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 BUFFER_SIZE = 4096

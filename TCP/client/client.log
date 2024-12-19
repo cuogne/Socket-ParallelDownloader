@@ -1,0 +1,31 @@
+2024-12-19 16:18:59,275 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:00,548 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:00,548 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:00,548 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:00,549 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:07,888 - INFO - Successfully received part 1 of jinx.png - [0-611318]
+2024-12-19 16:19:07,889 - INFO - Connection closed for part 1
+2024-12-19 16:19:07,938 - INFO - Successfully received part 2 of jinx.png - [611318-1222636]
+2024-12-19 16:19:07,939 - INFO - Connection closed for part 2
+2024-12-19 16:19:07,999 - INFO - Successfully received part 3 of jinx.png - [1222636-1833954]
+2024-12-19 16:19:08,000 - INFO - Connection closed for part 3
+2024-12-19 16:19:08,025 - INFO - Successfully received part 4 of jinx.png - [1833954-2445272]
+2024-12-19 16:19:08,025 - INFO - Connection closed for part 4
+2024-12-19 16:19:08,038 - INFO - Successfully merged parts into jinx.png
+2024-12-19 16:19:08,038 - INFO - Download jinx.png completed successfully!
+2024-12-19 16:19:18,049 - INFO - New files found in input.txt: ['arya.gif']
+2024-12-19 16:19:20,536 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:20,536 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:20,537 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:20,537 - INFO - Connected to server 127.0.0.1:9876
+2024-12-19 16:19:31,668 - INFO - Successfully received part 2 of arya.gif - [926986-1853972]
+2024-12-19 16:19:31,669 - INFO - Connection closed for part 2
+2024-12-19 16:19:31,693 - INFO - Successfully received part 4 of arya.gif - [2780958-3707944]
+2024-12-19 16:19:31,693 - INFO - Connection closed for part 4
+2024-12-19 16:19:31,740 - INFO - Successfully received part 3 of arya.gif - [1853972-2780958]
+2024-12-19 16:19:31,741 - INFO - Connection closed for part 3
+2024-12-19 16:19:31,777 - INFO - Successfully received part 1 of arya.gif - [0-926986]
+2024-12-19 16:19:31,777 - INFO - Connection closed for part 1
+2024-12-19 16:19:31,791 - INFO - Successfully merged parts into arya.gif
+2024-12-19 16:19:31,791 - INFO - Download arya.gif completed successfully!
+2024-12-19 16:19:40,477 - INFO - Client terminated...

@@ -1,0 +1,44 @@
+2024-12-19 16:18:54,156 - INFO - Server started on 127.0.0.1:9876
+2024-12-19 16:18:59,276 - INFO - New connection from 127.0.0.1:49214
+2024-12-19 16:18:59,277 - INFO - Sent filesize for mmt.txt to 127.0.0.1:49214
+2024-12-19 16:18:59,278 - INFO - Sent filesize for arya.gif to 127.0.0.1:49214
+2024-12-19 16:18:59,278 - INFO - Sent filesize for info.txt to 127.0.0.1:49214
+2024-12-19 16:18:59,278 - INFO - Sent filesize for jinx.png to 127.0.0.1:49214
+2024-12-19 16:18:59,278 - INFO - Sent filesize for background.jpg to 127.0.0.1:49214
+2024-12-19 16:18:59,278 - INFO - Sent filesize for alime.jpeg to 127.0.0.1:49214
+2024-12-19 16:18:59,279 - INFO - Sent filesize for avt.jpeg to 127.0.0.1:49214
+2024-12-19 16:18:59,279 - INFO - Connection closed for 127.0.0.1:49214
+2024-12-19 16:19:00,548 - INFO - New connection from 127.0.0.1:49216
+2024-12-19 16:19:00,549 - INFO - New connection from 127.0.0.1:49217
+2024-12-19 16:19:00,549 - INFO - New connection from 127.0.0.1:49219
+2024-12-19 16:19:00,549 - INFO - Sending jinx.png [0-611318] to 127.0.0.1:49216
+2024-12-19 16:19:00,550 - INFO - New connection from 127.0.0.1:49218
+2024-12-19 16:19:00,550 - INFO - Sending jinx.png [611318-1222636] to 127.0.0.1:49217
+2024-12-19 16:19:00,550 - INFO - Sending jinx.png [1833954-2445272] to 127.0.0.1:49219
+2024-12-19 16:19:00,551 - INFO - Sending jinx.png [1222636-1833954] to 127.0.0.1:49218
+2024-12-19 16:19:00,765 - INFO - Successfully sent jinx.png chunk to ('127.0.0.1', 49217)
+2024-12-19 16:19:00,778 - INFO - Successfully sent jinx.png chunk to ('127.0.0.1', 49216)
+2024-12-19 16:19:00,791 - INFO - Successfully sent jinx.png chunk to ('127.0.0.1', 49219)
+2024-12-19 16:19:00,803 - INFO - Successfully sent jinx.png chunk to ('127.0.0.1', 49218)
+2024-12-19 16:19:07,889 - INFO - Connection closed for 127.0.0.1:49216
+2024-12-19 16:19:07,939 - INFO - Connection closed for 127.0.0.1:49217
+2024-12-19 16:19:08,000 - INFO - Connection closed for 127.0.0.1:49218
+2024-12-19 16:19:08,025 - INFO - Connection closed for 127.0.0.1:49219
+2024-12-19 16:19:20,537 - INFO - New connection from 127.0.0.1:49228
+2024-12-19 16:19:20,537 - INFO - New connection from 127.0.0.1:49229
+2024-12-19 16:19:20,537 - INFO - New connection from 127.0.0.1:49230
+2024-12-19 16:19:20,538 - INFO - New connection from 127.0.0.1:49231
+2024-12-19 16:19:20,538 - INFO - Sending arya.gif [926986-1853972] to 127.0.0.1:49228
+2024-12-19 16:19:20,538 - INFO - Sending arya.gif [0-926986] to 127.0.0.1:49229
+2024-12-19 16:19:20,538 - INFO - Sending arya.gif [2780958-3707944] to 127.0.0.1:49231
+2024-12-19 16:19:20,538 - INFO - Sending arya.gif [1853972-2780958] to 127.0.0.1:49230
+2024-12-19 16:19:23,869 - INFO - Successfully sent arya.gif chunk to ('127.0.0.1', 49230)
+2024-12-19 16:19:23,882 - INFO - Successfully sent arya.gif chunk to ('127.0.0.1', 49228)
+2024-12-19 16:19:23,957 - INFO - Successfully sent arya.gif chunk to ('127.0.0.1', 49229)
+2024-12-19 16:19:23,995 - INFO - Successfully sent arya.gif chunk to ('127.0.0.1', 49231)
+2024-12-19 16:19:31,669 - INFO - Connection closed for 127.0.0.1:49228
+2024-12-19 16:19:31,694 - INFO - Connection closed for 127.0.0.1:49231
+2024-12-19 16:19:31,741 - INFO - Connection closed for 127.0.0.1:49230
+2024-12-19 16:19:31,777 - INFO - Connection closed for 127.0.0.1:49229
+2024-12-19 16:19:42,238 - INFO - Shutting down server...
+2024-12-19 16:19:42,238 - INFO - Server stopped

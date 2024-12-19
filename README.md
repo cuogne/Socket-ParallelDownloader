@@ -24,6 +24,7 @@ TCP/
 │   │   ├── jinx.png
 │   │   ├── ...
 │   │   ├── ...
+│   ├── client.log
 │   ├── client.py
 │   ├── input.txt
 ├── server/  
@@ -32,6 +33,7 @@ TCP/
 │   │   ├── jinx.png
 │   │   ├── background.jpg
 │   │   ├── ...
+│   ├── server.log
 │   ├── server.py
 │   ├── text.txt
 UDP/
@@ -41,7 +43,7 @@ UDP/
 │   │   ├── background.jpg
 │   │   ├── ...
 │   │   ├── ...
-│   ├── checklog_client.log
+│   ├── client.log
 │   ├── client.py
 │   ├── input.txt
 ├── server/  
@@ -50,6 +52,7 @@ UDP/
 │   │   ├── avt.jpeg
 │   │   ├── background.jpg
 │   │   ├── ...
+│   ├── server.log
 │   ├── server.py
 │   ├── text.txt
 .gitignore

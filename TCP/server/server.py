@@ -3,6 +3,7 @@ import socket
 import threading
 import signal
 import sys
+import logging
 
 # Config
 RESOURCES_SERVER = 'resources'
@@ -15,9 +16,13 @@ init_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 file_lock = threading.Lock()
 is_running = True
 
+# Setup logging
+logging.basicConfig(filename='server.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def signal_handler(signum, frame):
     global is_running
     print("\nShutting down server...")
+    logging.info("Shutting down server...")
     is_running = False
     init_server.close()
     sys.exit(0)
@@ -31,8 +36,6 @@ def change_size(size):
         unit_index += 1
     return f"{size:.3f}{units[unit_index]}"
 
-# doc danh sach file trong thu muc resources va ghi vao file text.txt
-# ham nay chi ghi tu dong cho file text.txt de kh phai nhap thu cong (co the comment lai)
 def write_text():
     resources_dir = os.path.join(os.path.dirname(__file__), RESOURCES_SERVER)
     text_file = os.path.join(os.path.dirname(__file__), TEXT_FILE)
@@ -47,11 +50,10 @@ def write_text():
 def send_file_chunk(server, filepath, start, end):
     try:
         with open(filepath, 'rb') as f:
-            # lock only for seek operation
             with file_lock:
                 f.seek(start)
             
-            remaining = end - start # kich thuoc chunk can gui
+            remaining = end - start
             
             while remaining > 0 and is_running:
                 chunk_size = min(BUFFER_SIZE, remaining)
@@ -61,48 +63,46 @@ def send_file_chunk(server, filepath, start, end):
                 server.sendall(chunk)
                 remaining -= len(chunk)
                 
+        logging.info(f"Successfully sent {os.path.basename(filepath)} chunk to {server.getpeername()}")
         return True
     except Exception as e:
-        print(f"Error sending file chunk: {e}")
+        logging.error(f"Error sending file chunk: {e}")
         return False
 
 def handle_client(server, addr):
-    client_id = f"{addr[0]}:{addr[1]}" # dia chi IP va cong cua client
+    client_id = f"{addr[0]}:{addr[1]}"
     print(f"New connection from {client_id}")
+    logging.info(f"New connection from {client_id}")
     
     try:
-        # gui danh sach file co the down cho client
         with open(TEXT_FILE, 'r') as f:
             server.send(f.read().encode())
 
         while is_running:
-            # nhan request tu client
             request = server.recv(BUFFER_SIZE).decode().strip()
             if not request:
                 break
 
-            # request voi format kh co '|' thi no la request yeu cau file_size
-            # request = f'{file_name}'.encode()
             if '|' not in request:
                 filepath = os.path.join(RESOURCES_SERVER, request)
                 if os.path.isfile(filepath):
                     filesize = os.path.getsize(filepath)
                     server.send(str(filesize).encode())
+                    logging.info(f"Sent filesize for {request} to {client_id}")
                 else:
                     server.send(f"File {request} not found.".encode())
                     print(f"File {request} not found for {client_id}")
+                    logging.warning(f"File {request} not found for {client_id}")
                 continue
 
-            # request voi format co '|' thi no la request yeu cau tai file va range can down
-            # request = f"{file_name}|{start}-{end}".encode()
-            parts = request.split('|') # tach lam 2 phan: file_name va range [start, end]
+            parts = request.split('|')
             if len(parts) != 2:
                 server.send("Invalid request format.".encode())
                 continue
 
             filename, range_str = parts
             try:
-                start, end = map(int, range_str.split('-')) # tach range thanh start va end
+                start, end = map(int, range_str.split('-'))
             except ValueError:
                 server.send("Invalid range format.".encode())
                 continue
@@ -112,31 +112,36 @@ def handle_client(server, addr):
                 server.send(f"File {filename} not found.".encode())
                 continue
 
+            logging.info(f"Sending {filename} [{start}-{end}] to {client_id}")
             success = send_file_chunk(server, filepath, start, end)
             
             if not success:
                 print(f"Error sending file chunk to {client_id}")
+                logging.error(f"Error sending file chunk to {client_id}")
                 
     except ConnectionResetError:
         print(f"Connection reset by {client_id}")
+        logging.warning(f"Connection reset by {client_id}")
     except Exception as e:
         print(f"Error handling {client_id}: {e}")
+        logging.error(f"Error handling {client_id}: {e}")
     finally:
         server.close()
         print(f"Connection closed for {client_id}")
+        logging.info(f"Connection closed for {client_id}")
 
 def run_server():
     signal.signal(signal.SIGINT, signal_handler)
     
     os.makedirs(RESOURCES_SERVER, exist_ok=True)
     
-    # Update file list
     write_text()
     
     try:
-        init_server.bind((HOST, PORT)) # dang ky dia chi IP va cong
+        init_server.bind((HOST, PORT))
         init_server.listen(5)
         print(f"Server started on {HOST}:{PORT}")
+        logging.info(f"Server started on {HOST}:{PORT}")
 
         while is_running:
             try:
@@ -150,11 +155,14 @@ def run_server():
             except socket.error as e:
                 if is_running:
                     print(f"Socket error: {e}")
+                    logging.error(f"Socket error: {e}")
 
     except Exception as e:
         print(f"Server error: {e}")
+        logging.error(f"Server error: {e}")
     finally:
         server.close()
+        logging.info("Server stopped")
 
 if __name__ == "__main__":
     run_server()

@@ -5,7 +5,7 @@ import time
 import threading
 import hashlib
 
-logging.basicConfig(filename='checklog_client.log', level=logging.INFO,
+logging.basicConfig(filename='client.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 BUFFER_SIZE = 4096
@@ -23,7 +23,6 @@ file_list_can_download = {}         # tao dict de luu cac file co the download
 
 def create_socket():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((SERVER_IP, 0))
     sock.settimeout(TIMEOUT)
     return sock
 
@@ -31,7 +30,7 @@ def display_progress(filename):
     os.system('cls' if os.name == 'nt' else 'clear')
     
     # hien thi cac file co the download len client
-    print("\nAvailable files can download:")
+    print("Available files can download:")
     for fname, fsize in file_list_can_download.items():
         print(f"{fname} ({fsize} bytes)")
 
@@ -126,7 +125,10 @@ def merge_file_part(filename, temp_files, filesize):
             os.remove(temp_file)
             
     if bytes_written != filesize:
+        logging.error(f"File size mismatch. Expected {filesize}, got {bytes_written}")
         raise Exception(f"File size mismatch. Expected {filesize}, got {bytes_written}")
+    else :
+        logging.info(f"Merge file {filename} success")
 
 def client():
     server_address = (SERVER_IP, SERVER_PORT)
@@ -209,6 +211,7 @@ def client():
                         if verify_checksum(f"download/{filename}", expected_checksum):
                             downloaded_files.add(filename)
                             print(f"\nDownload completed for {filename}")
+                            logging.info(f"Download completed for {filename}")
                             print("-" * 50)
                         else:
                             print(f"Checksum mismatch for {filename}")

@@ -3,6 +3,10 @@ import socket
 import threading
 import sys
 import time
+import logging
+
+# Configure logging
+logging.basicConfig(filename='client.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 REQUEST_DOWNLOAD_FILE = "input.txt" # file chua danh sach file can download
 DOWNLOAD_FOLDER = "data"            # thu muc chua file download
@@ -15,15 +19,16 @@ last_used_line_in_terminal = 0      # dong cuoi cung su dung tren terminal
 # tao ket noi toi server
 def create_connection_to_server(HOST, PORT):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.settimeout(30)  # increased timeout for more reliable connections
+    client.settimeout(30)
     try:
         client.connect((HOST, PORT))
+        logging.info(f"Connected to server {HOST}:{PORT}")
         return client
     except socket.timeout:
-        print(f"Connection timed out. Check server availability.")
+        logging.error(f"Connection timed out. Check server availability.")
         return None
     except Exception as e:
-        print(f"Error creating connection: {e}")
+        logging.error(f"Error creating connection: {e}")
         return None
 
 # hien thi tien trinh download
@@ -62,14 +67,16 @@ def download_part(HOST, PORT, file_name, part_num, start, end, base_line, part_s
                 received += len(data)                                   # cap nhat so byte da nhan                     
                 percent = min(received / part_size * 100, 100)          # tinh phan tram de hien thi tien trinh
                 display_progress_download(base_line, part_num, percent) # hien thi tien trinh
+            logging.info(f"Successfully received part {part_num} of {file_name} - [{start}-{end}]") 
         return True
 
     except Exception as e:
-        print(f"Error downloading part {part_num}: {e}")
+        logging.error(f"Error downloading part {part_num}: {e}")
         return False
     finally:
         if client:
             client.close()
+            logging.info(f"Connection closed for part {part_num}")
 
 # gop cac part lai thanh file hoan chinh
 def merge_parts(file_name, parts):
@@ -81,8 +88,10 @@ def merge_parts(file_name, parts):
                     while chunk := part_file.read(BUFFER_SIZE):
                         output_file.write(chunk)
                 os.remove(part_path)
+        logging.info(f"Successfully merged parts into {file_name}")
         return True
     except Exception as e:
+        logging.error(f"Error merging parts for {file_name}: {e}")
         return False
 
 # download file
@@ -127,11 +136,17 @@ def download_file(HOST, PORT, file_name, file_size):
         # check kich thuoc file vua download voi kich thuoc file goc tren server
         if success and merged_file_size == file_size:
             print(f"\033[{base_line + 5}HDownload {file_name} completed successfully!\n")
+            logging.info(f"Download {file_name} completed successfully!")
+            
             print(f"\033[{base_line + 6}H" + "-" * 40)
         else:
             print(f"\033[{base_line + 5}HDownload {file_name} errors! Expected:{file_size}, Got:{merged_file_size}\n")
+            logging.error(f"Download {file_name} errors! Expected:{file_size}, Got:{merged_file_size}")
+            
     except FileNotFoundError:
         print(f"\033[{base_line + 5}HDownload of {file_name} failed! Merged file not found.")
+        logging.error(f"Download of {file_name} failed! Merged file not found.")
+        
     return success
 
 def get_file_list_can_download(HOST, PORT):
@@ -159,12 +174,15 @@ def get_file_list_can_download(HOST, PORT):
                 try:
                     file_size = int(response)
                     file_list.append((file_name, file_size))
-                    print(f"[{file_name}]")
+                    print(f"[{file_name}] - {file_size} bytes")
+                    
                 except ValueError:
-                    print(f"Error getting size for {file_name}: {response}")          
+                    logging.error(f"Error getting size for {file_name}: {response}")
+                    print(f"Error getting size for {file_name}: {response}")
+                              
         return file_list
     except Exception as e:
-        print(f"Error getting file list: {e}")
+        logging.error(f"Error getting file list: {e}")
         return []
     finally:
         if client:
@@ -180,6 +198,8 @@ def process_input_file(HOST, port, file_can_download, processed_files):
         file_list = []
         for line in file:
             filename = line.strip()
+            # neu filename chua co trong file_list thi them vao
+            # => tranh truong hop file bi trung lap trong input.txt
             if filename and filename not in file_list:
                 file_list.append(filename)
 
@@ -192,21 +212,24 @@ def process_input_file(HOST, port, file_can_download, processed_files):
 
     if new_files:  # if have new file
         if check_updated_file and processed_files:
-            print(f"\nNew files found in input.txt: {new_files}") 
+            print(f"\nNew files found in input.txt: {new_files}")
+            logging.info(f"New files found in input.txt: {new_files}") 
 
-        # download new files
+        # download new files 
         for file_name in new_files:
             if file_name in file_can_download:
                 file_size = file_can_download[file_name]
                 try:
                     input(f"\nPress Enter to download {file_name}...")
-                    download_file(HOST, port, file_name, file_size)
+                    download_file(HOST, port, file_name, file_size, file_can_download)
                 except Exception as e:
+                    logging.error(f"[ERROR] Failed to download {file_name}: {e}")
                     print(f"[ERROR] Failed to download {file_name}: {e}")
             else:
+                logging.error(f"File '{file_name}' not found on server!")
                 print(f"File '{file_name}' not found on server!")
 
-        # update
+        # update processed files
         return processed_files + new_files
 
     return processed_files
@@ -238,6 +261,7 @@ def main():
             time.sleep(5)
             processed_files = process_input_file(HOST, PORT, file_can_download, processed_files)
     except KeyboardInterrupt:
+        logging.info("Client terminated...")
         print("\nClient terminated...")
 
 if __name__ == "__main__":
