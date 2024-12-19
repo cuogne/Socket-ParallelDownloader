@@ -182,8 +182,14 @@ def process_input_file(HOST, port, file_can_download, processed_files):
         return processed_files
 
     with open(REQUEST_DOWNLOAD_FILE, "r") as file:
-        # use set to remove duplicate file names (if have)
-        file_list = list(set(file.read().splitlines()))
+        # don't use set() because it sorts the list => not in order in input.txt
+        file_list = []
+        for line in file:
+            filename = line.strip()
+            # neu filename chua co trong file_list thi them vao
+            # => tranh truong hop file bi trung lap trong input.txt
+            if filename and filename not in file_list:
+                file_list.append(filename)
 
     new_files = []
     check_updated_file = False
